@@ -1,9 +1,8 @@
-// ╔══════════════════════════════════════════════════════════╗
-// ║  TEMPURA POTATO — core.js                               ║
-// ║  Single source of truth: Cart · Firebase · Settings     ║
-// ╚══════════════════════════════════════════════════════════╝
+// ============================================================
+//  TEMPURA POTATO — app.js v3.0
+//  CRITICAL FIX: Cart reads localStorage only, NEVER overwrites on load
+// ============================================================
 
-// ─── FIREBASE ─────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyCD9Xm9Etzxg5Avy9n4sHP-SW0Ei-ZTcHA",
   authDomain: "tempura-potato-deep.firebaseapp.com",
@@ -15,308 +14,421 @@ const firebaseConfig = {
   measurementId: "G-9FW6P8L7VP"
 };
 
-let _fbInitialized = false;
-function getFirebase() {
-  if (!_fbInitialized && typeof firebase !== 'undefined') {
-    try { firebase.initializeApp(firebaseConfig); } catch(e) {}
-    _fbInitialized = true;
-  }
-  return typeof firebase !== 'undefined' ? firebase : null;
-}
-window.getDB  = () => { const f = getFirebase(); return f ? f.database() : null; };
-window.getAuth = () => { const f = getFirebase(); return f ? f.auth() : null; };
+let db = null, auth = null;
+try {
+  if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  auth = firebase.auth ? firebase.auth() : null;
+} catch(e) { console.warn('Firebase:', e.message); }
 
-// ─── IMGBB ────────────────────────────────────────────────
 const IMGBB_KEY = 'ab7a51eaed988c67582fc8bcc877df5a';
-window.uploadToImgBB = async function(file) {
-  const form = new FormData();
-  form.append('image', file);
-  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method:'POST', body:form });
+
+async function uploadToImgBB(file) {
+  const fd = new FormData(); fd.append('image', file);
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method:'POST', body:fd });
   const data = await res.json();
   if (data.success) return data.data.url;
   throw new Error('ImgBB upload failed');
-};
+}
 
-// ─── CART — bulletproof localStorage ─────────────────────
-const CART_KEY = 'tp_cart_v2';
+// ─── MENU DATA ─────────────────────────────────────────────
+const DEFAULT_MENU = [
+  { id:'b1', name:'Grill Burger', cat:'burgers', price:320, img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80', desc:'Flame-grilled patty, fresh veggies & signature sauce' },
+  { id:'b2', name:'Zinger Burger', cat:'burgers', price:350, img:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80', desc:'Crispy zinger patty, crunchy lettuce, special sauce' },
+  { id:'b3', name:'Zinger Twister', cat:'burgers', price:380, img:'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=500&q=80', desc:'Crispy zinger in a soft tortilla with fresh veggies' },
+  { id:'b4', name:'Patty Burger', cat:'burgers', price:300, img:'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&q=80', desc:'Double patty with classic sauce & toppings' },
+  { id:'w1', name:'Chicken Bhayari Roll', cat:'wraps', price:300, img:'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=500&q=80', desc:'Classic chicken bhayari in soft flaky paratha' },
+  { id:'w2', name:'Seekh Kabab Roll', cat:'wraps', price:250, img:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=500&q=80', desc:'Juicy seekh kababs rolled in fresh paratha' },
+  { id:'w3', name:'Mala Boti Wrap', cat:'wraps', price:450, img:'https://images.unsplash.com/photo-1561043433-aaf687c4cf04?w=500&q=80', desc:'Spicy mala boti with crispy fries inside a wrap' },
+  { id:'w4', name:'Zinger Wrap', cat:'wraps', price:350, img:'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80', desc:'Zinger patty with lettuce & sauce in a tortilla' },
+  { id:'w5', name:'Shapath Roll', cat:'wraps', price:390, img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&q=80', desc:'Loaded shapath in flaky paratha, street-style' },
+  { id:'w6', name:'Dhamaka Roll', cat:'wraps', price:490, img:'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=500&q=80', desc:'The ultimate roll — fully loaded, fully flavoured' },
+  { id:'w7', name:'Malai Boti Roll', cat:'wraps', price:420, img:'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=500&q=80', desc:'Creamy malai boti wrapped in hot paratha' },
+  { id:'w8', name:'Chicken Shawarma', cat:'wraps', price:280, img:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500&q=80', desc:'Fresh grilled chicken shawarma with garlic sauce' },
+  { id:'w9', name:'Special Grilled Shawarma', cat:'wraps', price:380, img:'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80', desc:'Upgraded shawarma — extra toppings, extra flavour' },
+  { id:'c1', name:'Taka Grilled Chicken', cat:'sides', price:250, img:'https://images.unsplash.com/photo-1598103442097-8b74394b95c3?w=500&q=80', desc:'Perfectly grilled taka-style chicken' },
+  { id:'s1', name:'Plane Fries', cat:'sides', price:120, img:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80', desc:'Classic golden crispy fries' },
+  { id:'s2', name:'Loaded Fries', cat:'sides', price:180, img:'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=500&q=80', desc:'Fries loaded with cheese sauce & toppings' },
+  { id:'s3', name:'Next Cola 1L', cat:'sides', price:120, img:'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80', desc:'Chilled Next Cola 1 litre' },
+  { id:'d1', name:'Deal 1', cat:'deals', price:600, img:'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=500&q=80', desc:'2 Zinger Burgers + 2 Next Colas', includes:['2 Zinger Burgers','2 Next Colas'] },
+  { id:'d2', name:'Deal 2', cat:'deals', price:420, img:'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80', desc:'2 Zinger Twisters + 1 Plane Fries', includes:['2 Zinger Twisters','1 Plane Fries'] },
+  { id:'d3', name:'Deal 3', cat:'deals', price:380, img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80', desc:'1 Zinger + 1 Fries + 1 Drink', includes:['1 Zinger Burger','1 Plane Fries','1 Drink'] },
+  { id:'d4', name:'Deal 4', cat:'deals', price:480, img:'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=500&q=80', desc:'2 Patty Burgers + 1L Next Cola', includes:['2 Patty Burgers','1L Next Cola'] },
+  { id:'d5', name:'Deal 5', cat:'deals', price:550, img:'https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80', desc:'1 Zinger + 1 Shawarma + Half Drink', includes:['1 Zinger Burger','1 Shawarma','Half Drink'] },
+  { id:'d6', name:'Family Deal', cat:'deals', price:1000, img:'https://images.unsplash.com/photo-1552895638-f7fe08d2f7d5?w=500&q=80', desc:'2 Patty + 2 Zingers + 1L Cola + Loaded Fries', includes:['2 Patty Burgers','2 Zingers','1L Cola','Loaded Fries'] },
+  { id:'d7', name:'Mega Deal', cat:'deals', price:1250, img:'https://images.unsplash.com/photo-1607013251379-e6eecfffe234?w=500&q=80', desc:'4 Zingers + 1L Cola + 1 Loaded Fries', includes:['4 Zinger Burgers','1L Next Cola','Loaded Fries'] },
+  { id:'d8', name:'Feast Deal', cat:'deals', price:1480, img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80', desc:'5 Grill Burgers + 2 Loaded Fries + 1L Cola', includes:['5 Grill Burgers','2 Loaded Fries','1L Cola'] },
+  { id:'d9', name:'Party Deal', cat:'deals', price:1500, img:'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=500&q=80', desc:'6 Patty Burgers + 1L Cola + Loaded Fries', includes:['6 Patty Burgers','1L Cola','Loaded Fries'] },
+  { id:'d10', name:'Legendary Deal', cat:'deals', price:2000, img:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80', desc:'Ultimate party pack', includes:['2 Patty','2 Zingers','2 Grill','2 Loaded Fries','2L Cola'] },
+];
 
-const Cart = {
-  get() {
-    try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
-    catch(e) { return []; }
-  },
-  save(items) {
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-    Cart._notify();
-  },
-  add(item, qty = 1) {
-    const items = Cart.get();
-    const idx = items.findIndex(c => c.id === item.id);
-    if (idx > -1) items[idx].qty += qty;
-    else items.push({ id:item.id, name:item.name, price:item.price, image:item.image||'', cat:item.cat, qty });
-    Cart.save(items);
-    Toast.show(`${item.name} added to cart 🛒`);
-  },
-  remove(id) {
-    Cart.save(Cart.get().filter(c => c.id !== id));
-  },
-  updateQty(id, qty) {
-    if (qty < 1) { Cart.remove(id); return; }
-    const items = Cart.get();
-    const idx = items.findIndex(c => c.id === id);
-    if (idx > -1) { items[idx].qty = qty; Cart.save(items); }
-  },
-  clear() { localStorage.removeItem(CART_KEY); Cart._notify(); },
-  total() { return Cart.get().reduce((s,c) => s + c.price * c.qty, 0); },
-  count() { return Cart.get().reduce((s,c) => s + c.qty, 0); },
-  _listeners: [],
-  onChange(fn) { Cart._listeners.push(fn); },
-  _notify() { Cart._listeners.forEach(fn => fn(Cart.get())); }
-};
-window.Cart = Cart;
+// ─── CART — FULLY FIXED ────────────────────────────────────
+const CART_KEY = 'tp_cart_v3';
 
-// ─── TOAST ────────────────────────────────────────────────
-const Toast = {
-  show(msg, duration = 2400) {
-    let el = document.getElementById('tp-toast');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'tp-toast';
-      el.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);
-        background:var(--yellow,#f5c842);color:var(--black,#0a0a0a);padding:12px 26px;border-radius:30px;
-        font-weight:700;font-size:14px;z-index:99999;opacity:0;transition:all .3s ease;
-        white-space:nowrap;pointer-events:none;font-family:'Barlow',sans-serif;`;
-      document.body.appendChild(el);
-    }
-    el.textContent = msg;
-    el.style.opacity = '1';
-    el.style.transform = 'translateX(-50%) translateY(0)';
-    clearTimeout(el._t);
-    el._t = setTimeout(() => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateX(-50%) translateY(16px)';
-    }, duration);
-  }
-};
-window.Toast = Toast;
+function getCart() {
+  try { const r = localStorage.getItem(CART_KEY); return r ? JSON.parse(r) : []; }
+  catch(e) { return []; }
+}
 
-// ─── SETTINGS LOADER — apply Firebase branding to every page ──
-window.loadSiteSettings = async function() {
-  const db = getDB();
+function saveCartData(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+
+function addToCart(item, qty) {
+  qty = qty || 1;
+  const cart = getCart();
+  const idx = cart.findIndex(c => c.id === item.id);
+  if (idx >= 0) cart[idx].qty += qty;
+  else cart.push({ id:item.id, name:item.name, price:item.price, img:item.img||'', cat:item.cat||'', qty:qty });
+  saveCartData(cart);
+  updateCartBadge();
+  showToast(item.name + ' added to cart 🛒');
+  // fly animation
+  const evt = window._lastClickEvent;
+  if (evt) flyToCart(evt);
+}
+
+function removeFromCart(id) { saveCartData(getCart().filter(c => c.id !== id)); updateCartBadge(); }
+function updateCartQty(id, qty) {
+  const cart = getCart();
+  const idx = cart.findIndex(c => c.id === id);
+  if (idx >= 0) { if (qty <= 0) cart.splice(idx, 1); else cart[idx].qty = qty; }
+  saveCartData(cart); updateCartBadge();
+}
+function clearCart() { localStorage.removeItem(CART_KEY); updateCartBadge(); }
+
+function updateCartBadge() {
+  const total = getCart().reduce((s,c) => s+c.qty, 0);
+  document.querySelectorAll('.cart-count').forEach(el => el.textContent = total);
+  const f = document.getElementById('cart-float');
+  if (f) f.classList.toggle('show', total > 0);
+}
+
+// Track last click for fly animation
+document.addEventListener('click', e => { window._lastClickEvent = e; }, true);
+
+function flyToCart(e) {
+  const cartIcon = document.getElementById('cart-float');
+  if (!cartIcon || !e.clientX) return;
+  const dot = document.createElement('div');
+  const cr = cartIcon.getBoundingClientRect();
+  dot.style.cssText = `position:fixed;width:12px;height:12px;background:var(--yellow);border-radius:50%;z-index:99999;pointer-events:none;left:${e.clientX}px;top:${e.clientY}px;transition:left 0.65s cubic-bezier(0.2,1,0.3,1),top 0.65s cubic-bezier(0.2,1,0.3,1),transform 0.65s,opacity 0.65s;`;
+  document.body.appendChild(dot);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    dot.style.left = (cr.left + cr.width/2) + 'px';
+    dot.style.top = (cr.top + cr.height/2) + 'px';
+    dot.style.transform = 'scale(0)';
+    dot.style.opacity = '0';
+  }));
+  setTimeout(() => dot.remove(), 700);
+}
+
+// ─── TOAST ─────────────────────────────────────────────────
+function showToast(msg, type) {
+  let t = document.getElementById('tp-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'tp-toast'; document.body.appendChild(t); }
+  t.className = 'tp-toast-el' + (type === 'error' ? ' toast-error' : '');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ─── FIREBASE SETTINGS — applies to ALL pages ──────────────
+async function loadFirebaseSettings() {
   if (!db) return;
   try {
     const snap = await db.ref('settings').once('value');
-    const s = snap.val() || {};
+    const s = snap.val(); if (!s) return;
     const b = s.branding || {};
-    const r = document.documentElement;
+    if (b.accentColor) {
+      document.documentElement.style.setProperty('--yellow', b.accentColor);
+      const hex = b.accentColor.replace('#','');
+      const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), bl=parseInt(hex.slice(4,6),16);
+      document.documentElement.style.setProperty('--yellow-glow', `rgba(${r},${g},${bl},0.3)`);
+    }
+    if (b.bgColor) document.documentElement.style.setProperty('--black', b.bgColor);
+    if (b.cardRadius) document.documentElement.style.setProperty('--radius', b.cardRadius);
+    if (b.restaurantName) document.querySelectorAll('.tp-brand-name').forEach(el => el.textContent = b.restaurantName);
+    if (b.tagline) document.querySelectorAll('.tp-tagline').forEach(el => el.textContent = b.tagline);
+    if (b.phone) document.querySelectorAll('.tp-phone').forEach(el => el.textContent = b.phone);
+    if (b.address) document.querySelectorAll('.tp-address').forEach(el => el.textContent = b.address);
+    if (b.logoEmoji) document.querySelectorAll('.tp-logo-emoji').forEach(el => el.textContent = b.logoEmoji);
+    if (s.content?.announcementBar) {
+      const bar = document.getElementById('announcement-bar');
+      if (bar) { bar.innerHTML = s.content.announcementBar; bar.style.display = 'flex'; }
+    }
+    if (s.content?.maintenanceMode && !window.location.pathname.includes('admin')) {
+      document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;color:#fff;text-align:center;padding:40px"><div><div style="font-size:64px;margin-bottom:16px">🔧</div><h1 style="font-family:sans-serif;font-size:32px;color:#f5c842;margin-bottom:12px">Under Maintenance</h1><p style="color:#888;font-size:16px">${s.content.maintenanceMsg||'We will be back shortly!'}</p></div></div>`;
+    }
+  } catch(e) { console.warn('Settings:', e); }
+}
 
-    if (b.accentColor)    r.style.setProperty('--yellow', b.accentColor);
-    if (b.accentColorGlow) r.style.setProperty('--yellow-glow', b.accentColorGlow);
-    if (b.bgColor)        r.style.setProperty('--black', b.bgColor);
-    if (b.cardColor)      r.style.setProperty('--black3', b.cardColor);
-    if (b.fontDisplay)    loadGoogleFont(b.fontDisplay);
-    if (b.brandName) {
-      document.querySelectorAll('.nav-brand,.footer-brand,[data-brand]').forEach(el => el.textContent = b.brandName);
-    }
-    if (b.tagline) {
-      document.querySelectorAll('.nav-sub,.footer-tagline,[data-tagline]').forEach(el => el.textContent = b.tagline);
-    }
-    if (b.logoEmoji) {
-      document.querySelectorAll('.nav-logo-icon,.footer-logo-icon,[data-logo-emoji]').forEach(el => el.textContent = b.logoEmoji);
-    }
-    if (b.heroHeadline) {
-      const h = document.querySelector('.hero-title-line2');
-      if (h) h.textContent = b.heroHeadline;
-    }
-    if (b.heroBadge) {
-      const hb = document.querySelector('.hero-badge');
-      if (hb) hb.textContent = b.heroBadge;
-    }
-    if (b.announcementBar) {
-      const ab = document.querySelector('.pwa-banner span');
-      if (ab) ab.innerHTML = b.announcementBar;
-    }
-    if (b.maintenanceMode) {
-      showMaintenanceBanner();
-    }
-    // Store locally for offline
-    localStorage.setItem('tp_settings_cache', JSON.stringify(s));
-  } catch(e) {
-    // Fallback to cache
-    try {
-      const cached = JSON.parse(localStorage.getItem('tp_settings_cache') || '{}');
-      if (cached.branding?.accentColor) {
-        document.documentElement.style.setProperty('--yellow', cached.branding.accentColor);
+// ─── PROMO CODE VALIDATION ─────────────────────────────────
+async function validatePromoCode(code) {
+  const now = Date.now();
+  const builtIn = {
+    'APP20': { discount:0.20, label:'20% App Discount' },
+    'FIRSTORDER': { discount:0.20, label:'20% First Order' },
+  };
+  if (builtIn[code]) return builtIn[code];
+  if (!db) return null;
+  try {
+    const snap = await db.ref('promoCodes/'+code).once('value');
+    const d = snap.val(); if (!d) return null;
+    if (d.expiry && d.expiry < now) return { expired:true, msg:'This promo code has expired' };
+    if (d.usageLimit && (d.usageCount||0) >= d.usageLimit) return { expired:true, msg:'Promo code usage limit reached' };
+    if (d.minOrder && 0 < d.minOrder) return d; // caller checks order amount
+    return d;
+  } catch(e) { return null; }
+}
+
+// ─── SCROLL ANIMATIONS ─────────────────────────────────────
+function initScrollAnimations() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+        e.target.querySelectorAll('.stagger-child').forEach((c,i) => setTimeout(() => c.classList.add('in-view'), i*120));
       }
-    } catch(e2) {}
+    });
+  }, { threshold:0.08, rootMargin:'0px 0px -50px 0px' });
+  document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale').forEach(el => io.observe(el));
+}
+
+// ─── TILT CARDS ────────────────────────────────────────────
+function initTiltEffect() {
+  if (window.matchMedia('(pointer:coarse)').matches) return;
+  document.querySelectorAll('.tilt-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX-r.left)/r.width - 0.5;
+      const y = (e.clientY-r.top)/r.height - 0.5;
+      card.style.transform = `perspective(800px) rotateY(${x*10}deg) rotateX(${-y*10}deg) translateZ(8px)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+  });
+}
+
+// ─── MOUSE PARALLAX ────────────────────────────────────────
+function initMouseParallax() {
+  if (window.matchMedia('(pointer:coarse)').matches) return;
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX/window.innerWidth - 0.5)*2;
+    const y = (e.clientY/window.innerHeight - 0.5)*2;
+    document.querySelectorAll('[data-parallax]').forEach(el => {
+      const d = parseFloat(el.dataset.parallax)||0.02;
+      el.style.transform = `translate(${x*d*80}px,${y*d*80}px)`;
+    });
+  });
+}
+
+// ─── SCROLL PARALLAX ───────────────────────────────────────
+function initParallaxScroll() {
+  window.addEventListener('scroll', () => {
+    const sy = window.scrollY;
+    document.querySelectorAll('[data-scroll-speed]').forEach(el => {
+      const s = parseFloat(el.dataset.scrollSpeed)||0.3;
+      el.style.transform = `translateY(${sy*s}px)`;
+    });
+  }, { passive:true });
+}
+
+// ─── CUSTOM CURSOR ─────────────────────────────────────────
+function initCursor() {
+  if (window.matchMedia('(pointer:coarse)').matches) return;
+  const cur = document.createElement('div'); cur.id='tp-cursor';
+  cur.innerHTML = '<div class="cur-dot"></div><div class="cur-ring"></div>';
+  document.body.appendChild(cur);
+  let mx=0,my=0,cx=0,cy=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cur.style.opacity='1'; });
+  (function anim(){ cx+=(mx-cx)*0.12; cy+=(my-cy)*0.12; cur.style.left=cx+'px'; cur.style.top=cy+'px'; requestAnimationFrame(anim); })();
+  document.querySelectorAll('a,button,.menu-card,.deal-card,.tilt-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('hover'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('hover'));
+  });
+}
+
+// ─── COUNTER ANIMATION ─────────────────────────────────────
+function initCounters() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const target = parseInt(e.target.dataset.count);
+      const suffix = e.target.dataset.suffix||'';
+      let start = null;
+      (function step(ts) {
+        if (!start) start=ts;
+        const p = Math.min((ts-start)/2000,1);
+        e.target.textContent = Math.floor((1-Math.pow(1-p,3))*target) + suffix;
+        if (p<1) requestAnimationFrame(step);
+      })(performance.now());
+      io.unobserve(e.target);
+    });
+  }, {threshold:0.5});
+  document.querySelectorAll('[data-count]').forEach(el => io.observe(el));
+}
+
+// ─── RIPPLE ────────────────────────────────────────────────
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-primary,.btn-secondary,.menu-card-add,.deal-card button');
+  if (!btn) return;
+  const ripple = document.createElement('span');
+  const r = btn.getBoundingClientRect(), size = Math.max(r.width,r.height);
+  ripple.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px;transform:scale(0);animation:rippleAnim 0.6s linear;pointer-events:none;`;
+  const prev = btn.style.cssText;
+  btn.style.position='relative'; btn.style.overflow='hidden';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 700);
+});
+
+// ─── NAVBAR ────────────────────────────────────────────────
+function initNavbar() {
+  const nav = document.getElementById('navbar'); if (!nav) return;
+  let lastY = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    nav.classList.toggle('scrolled', y > 50);
+    if (y > lastY+8 && y > 200) nav.classList.add('nav-hide');
+    else if (y < lastY-8) nav.classList.remove('nav-hide');
+    lastY = y;
+  }, {passive:true});
+  document.getElementById('nav-hamburger')?.addEventListener('click', () => {
+    document.getElementById('mobile-menu')?.classList.toggle('open');
+    document.body.classList.toggle('no-scroll');
+  });
+}
+window.closeMobileMenu = () => { document.getElementById('mobile-menu')?.classList.remove('open'); document.body.classList.remove('no-scroll'); };
+
+// ─── PARTICLES ─────────────────────────────────────────────
+function initParticles() {
+  const c = document.getElementById('hero-particles'); if (!c) return;
+  for (let i=0;i<28;i++) {
+    const p = document.createElement('div'); p.className='hero-particle';
+    p.style.cssText = `left:${Math.random()*100}%;animation-duration:${9+Math.random()*14}s;animation-delay:${Math.random()*18}s;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;`;
+    c.appendChild(p);
   }
+}
+
+// ─── ITEM MODAL ────────────────────────────────────────────
+let _mi=null, _mq=1;
+window.openItemModal = function(id) {
+  const item = DEFAULT_MENU.find(m=>m.id===id); if (!item) return;
+  _mi=item; _mq=1;
+  document.getElementById('modal-img').src = item.img;
+  document.getElementById('modal-name').textContent = item.name;
+  document.getElementById('modal-desc').textContent = item.desc;
+  document.getElementById('modal-price').textContent = 'Rs. '+item.price;
+  document.getElementById('modal-qty').textContent = 1;
+  document.getElementById('item-modal-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
 };
-
-function loadGoogleFont(name) {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = `https://fonts.googleapis.com/css2?family=${name.replace(/ /g,'+')}:wght@700;900&display=swap`;
-  document.head.appendChild(link);
-}
-
-function showMaintenanceBanner() {
-  let b = document.getElementById('maintenance-banner');
-  if (!b) {
-    b = document.createElement('div');
-    b.id = 'maintenance-banner';
-    b.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:99998;background:#ff4444;color:#fff;
-      text-align:center;padding:10px;font-weight:700;font-size:14px;font-family:'Barlow',sans-serif;`;
-    b.textContent = '⚠️ Site under maintenance. Some features may be limited.';
-    document.body.prepend(b);
-  }
-}
-
-// ─── PROMO CODE EXPIRY ENGINE ──────────────────────────────
-window.PromoEngine = {
-  async validate(code) {
-    const db = getDB();
-    if (!db) return this._localCheck(code);
-    try {
-      const snap = await db.ref('promoCodes/' + code.toUpperCase()).once('value');
-      const p = snap.val();
-      if (!p) return { valid: false, msg: 'Invalid promo code' };
-      if (p.expiresAt && Date.now() > p.expiresAt) return { valid: false, msg: 'This promo code has expired' };
-      if (p.usageLimit && p.usedCount >= p.usageLimit) return { valid: false, msg: 'Promo code usage limit reached' };
-      // Increment usage
-      await db.ref('promoCodes/' + code.toUpperCase() + '/usedCount').set((p.usedCount||0)+1);
-      return { valid: true, discount: p.discount || 0.20, msg: `${Math.round((p.discount||0.20)*100)}% discount applied!` };
-    } catch(e) { return this._localCheck(code); }
-  },
-  _localCheck(code) {
-    const codes = { 'FIRSTORDER': 0.20, 'APP20': 0.20, 'WELCOME10': 0.10 };
-    if (codes[code.toUpperCase()]) return { valid:true, discount:codes[code.toUpperCase()], msg:`${Math.round(codes[code.toUpperCase()]*100)}% discount!` };
-    return { valid:false, msg:'Invalid promo code' };
-  }
+window.closeItemModal = function() {
+  document.getElementById('item-modal-overlay')?.classList.remove('show');
+  document.body.style.overflow='';
 };
+window.modalQtyChange = function(d) {
+  _mq = Math.max(1,_mq+d);
+  document.getElementById('modal-qty').textContent = _mq;
+  if (_mi) document.getElementById('modal-price').textContent = 'Rs. '+(_mi.price*_mq);
+};
+window.addModalToCart = function() { if (_mi) { addToCart(_mi,_mq); window.closeItemModal(); } };
+document.addEventListener('click', e => {
+  if (e.target.id==='item-modal-overlay') window.closeItemModal();
+  if (e.target.id==='pwa-popup-overlay') window.closePWAPopup?.();
+});
 
-// ─── NAV CART BADGE UPDATER ────────────────────────────────
-function updateCartBadge() {
-  const count = Cart.count();
-  const badge = document.getElementById('cart-float-count');
-  const float = document.getElementById('cart-float');
-  if (badge) badge.textContent = count;
-  if (float) float.classList.toggle('show', count > 0);
+// ─── MENU RENDER ───────────────────────────────────────────
+function renderMenu(cat) {
+  cat = cat||'all';
+  const grid = document.getElementById('menu-grid'); if (!grid) return;
+  const items = cat==='all' ? DEFAULT_MENU.filter(i=>i.cat!=='deals') : DEFAULT_MENU.filter(i=>i.cat===cat);
+  grid.innerHTML = items.map((item,i) => `
+    <div class="menu-card tilt-card reveal" style="transition-delay:${i*0.04}s" onclick="openItemModal('${item.id}')">
+      <div class="menu-card-img">
+        <img src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80'"/>
+        <div class="menu-card-overlay"></div>
+        <span class="menu-card-cat-badge">${item.cat}</span>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-name">${item.name}</div>
+        <div class="menu-card-desc">${item.desc}</div>
+        <div class="menu-card-footer">
+          <div class="menu-card-price">Rs. ${item.price}</div>
+          <button class="menu-card-add" onclick="event.stopPropagation();addToCart({id:'${item.id}',name:'${item.name.replace(/'/g,'\\\'')}',price:${item.price},img:'${item.img}',cat:'${item.cat}'},1)">+</button>
+        </div>
+      </div>
+    </div>`).join('');
+  initScrollAnimations(); setTimeout(initTiltEffect,100);
 }
-Cart.onChange(updateCartBadge);
-document.addEventListener('DOMContentLoaded', updateCartBadge);
 
-// ─── MENU DATA — single source, both pages read from here ──
-window.MENU_DATA = [
-  // BURGERS
-  { id:'b1', name:'Grill Burger',    cat:'burgers', price:320,
-    image:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    desc:'Flame-grilled chicken patty with crispy lettuce, tomato & our signature sauce' },
-  { id:'b2', name:'Zinger Burger',   cat:'burgers', price:350,
-    image:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&q=80',
-    desc:'Extra-crispy zinger fillet, fresh slaw, secret zinger sauce — pure heat' },
-  { id:'b3', name:'Zinger Twister',  cat:'burgers', price:380,
-    image:'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&q=80',
-    desc:'Crispy zinger wrapped in a soft flour tortilla with fresh veggies' },
-  { id:'b4', name:'Patty Burger',    cat:'burgers', price:280,
-    image:'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80',
-    desc:'Classic double-pressed chicken patty with cheese and sauce' },
+function renderDeals() {
+  const grid = document.getElementById('deals-grid'); if (!grid) return;
+  const deals = DEFAULT_MENU.filter(i=>i.cat==='deals');
+  grid.innerHTML = deals.map((deal,i) => `
+    <div class="deal-card reveal" style="transition-delay:${i*0.06}s" onclick="openItemModal('${deal.id}')">
+      <div class="deal-badge">🔥 DEAL</div>
+      <div class="deal-img">
+        <img src="${deal.img}" alt="${deal.name}" loading="lazy"/>
+        <div class="deal-img-overlay"></div>
+      </div>
+      <div class="deal-card-body">
+        <div class="deal-name">${deal.name}</div>
+        <div class="deal-includes">${(deal.includes||[]).map(x=>`<span>✦ ${x}</span>`).join('')}</div>
+        <div class="deal-footer">
+          <div class="deal-price">Rs. ${deal.price}</div>
+          <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="event.stopPropagation();addToCart({id:'${deal.id}',name:'${deal.name.replace(/'/g,'\\\'')}',price:${deal.price},img:'${deal.img}',cat:'deals'},1)">Add</button>
+        </div>
+      </div>
+    </div>`).join('');
+  initScrollAnimations();
+}
 
-  // WRAPS & ROLLS
-  { id:'w1', name:'Chicken Bhayari Paratha Roll', cat:'wraps', price:300,
-    image:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400&q=80',
-    desc:'Slow-cooked chicken bhayari tightly wrapped in fresh hot paratha' },
-  { id:'w2', name:'Seekh Kabab Paratha Roll',     cat:'wraps', price:250,
-    image:'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80',
-    desc:'Juicy hand-made seekh kababs in flaky golden paratha' },
-  { id:'w3', name:'Mala Boti Wrap',               cat:'wraps', price:450,
-    image:'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80',
-    desc:'Spicy mala boti with crispy fries — the wrap that burns good' },
-  { id:'w4', name:'Chicken BBQ Wrap',             cat:'wraps', price:300,
-    image:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80',
-    desc:'Smoky BBQ chicken strips in warm paratha with garlic sauce' },
-  { id:'w5', name:'Zinger Wrap',                  cat:'wraps', price:350,
-    image:'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&q=80',
-    desc:'Crispy zinger with lettuce, pickles & sauce in a soft tortilla' },
-  { id:'w6', name:'Shapath Roll',                 cat:'wraps', price:390,
-    image:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400&q=80',
-    desc:'Loaded street-style shapath in flaky paratha — Lahore original' },
-  { id:'w7', name:'Dhamaka Roll',                 cat:'wraps', price:490,
-    image:'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80',
-    desc:'The ultimate fully-loaded roll — every flavour in one bite' },
-  { id:'w8', name:'Malai Boti Paratha Roll',      cat:'wraps', price:420,
-    image:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80',
-    desc:'Creamy malai boti straight off the grill, wrapped in hot paratha' },
-  { id:'w9', name:'Chicken Taka Paratha Roll',    cat:'wraps', price:280,
-    image:'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80',
-    desc:'Taka-style spiced chicken — crispy, saucy, and satisfying' },
+function initMenuTabs() {
+  document.querySelectorAll('.menu-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const grid = document.getElementById('menu-grid');
+      grid.style.cssText='opacity:0;transform:translateY(10px);transition:all 0.3s';
+      setTimeout(() => { renderMenu(tab.dataset.cat); grid.style.cssText='opacity:1;transform:translateY(0);transition:all 0.3s'; }, 280);
+    });
+  });
+}
 
-  // SHAWARMA
-  { id:'s1', name:'Grill Shawarma',          cat:'shawarma', price:280,
-    image:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80',
-    desc:'Fresh-grilled chicken shawarma with garlic sauce and pickles' },
-  { id:'s2', name:'Special Grilled Shawarma', cat:'shawarma', price:380,
-    image:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80',
-    desc:'Upgraded shawarma — extra toppings, double sauce, maximum flavour' },
-  { id:'s3', name:'2 Shawarma',              cat:'shawarma', price:380,
-    image:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80',
-    desc:'Two classic shawarmas — great value, great flavour' },
-  { id:'s4', name:'Half Chicken Zinger Shawarma', cat:'shawarma', price:550,
-    image:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80',
-    desc:'Half chicken zinger shawarma — massive, satisfying, legendary' },
+// ─── PWA ───────────────────────────────────────────────────
+let _dip = null;
+function initPWA() {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); _dip=e;
+    setTimeout(() => document.getElementById('pwa-banner')?.classList.add('show'), 3500);
+    if (!localStorage.getItem('tp_pwa_shown')) {
+      setTimeout(() => { document.getElementById('pwa-popup-overlay')?.classList.add('show'); localStorage.setItem('tp_pwa_shown','1'); }, 10000);
+    }
+  });
+  document.getElementById('pwa-banner-close')?.addEventListener('click', () => document.getElementById('pwa-banner')?.classList.remove('show'));
+  document.querySelectorAll('.pwa-trigger').forEach(b => b.addEventListener('click', triggerInstall));
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+async function triggerInstall() {
+  if (_dip) { _dip.prompt(); const {outcome} = await _dip.userChoice; _dip=null; if(outcome==='accepted'){showToast('App installed! 20% off applied 🎉'); document.getElementById('pwa-banner')?.classList.remove('show'); window.closePWAPopup?.();} }
+  else { const m=document.getElementById('pwa-popup-manual'); if(m) m.style.display='block'; document.getElementById('pwa-popup-overlay')?.classList.add('show'); }
+}
+window.closePWAPopup = () => document.getElementById('pwa-popup-overlay')?.classList.remove('show');
 
-  // SIDES
-  { id:'f1', name:'Plane Fries',    cat:'sides', price:120,
-    image:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80',
-    desc:'Classic golden crispy fries — light, crunchy, perfect' },
-  { id:'f2', name:'Loaded Fries',   cat:'sides', price:180,
-    image:'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=400&q=80',
-    desc:'Fries piled with cheese sauce, chilli flakes & secret drizzle' },
-  { id:'f3', name:'Taka Grilled Chicken', cat:'sides', price:250,
-    image:'https://images.unsplash.com/photo-1598103442097-8b74394b95c1?w=400&q=80',
-    desc:'Perfectly grilled taka-style chicken — 330g of pure protein' },
-  { id:'f4', name:'1 Litre Next Cola', cat:'sides', price:120,
-    image:'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400&q=80',
-    desc:'Chilled Next Cola — the perfect sidekick to any meal' },
+// ─── INIT ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  updateCartBadge();
+  await loadFirebaseSettings();
+  initNavbar();
+  initParticles();
+  initScrollAnimations();
+  initMouseParallax();
+  initParallaxScroll();
+  initCounters();
+  initCursor();
+  initPWA();
+  if (document.getElementById('menu-grid')) { renderMenu('all'); initMenuTabs(); }
+  if (document.getElementById('deals-grid')) renderDeals();
+  setTimeout(initTiltEffect, 400);
+});
 
-  // DEALS
-  { id:'d1', name:'Deal 1', cat:'deals', price:600,
-    image:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    desc:'2 Zinger Burgers + 2 Next Colas',
-    includes:['2 Zinger Burgers','2 Next Colas'] },
-  { id:'d2', name:'Deal 2', cat:'deals', price:420,
-    image:'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&q=80',
-    desc:'2 Zinger Twisters + 1 Plane Fries',
-    includes:['2 Zinger Twisters','1 Plane Fries'] },
-  { id:'d3', name:'Deal 3', cat:'deals', price:380,
-    image:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&q=80',
-    desc:'1 Zinger Burger + 1 Plane Fries + 1 Drink',
-    includes:['1 Zinger Burger','1 Plane Fries','1 Red Drink'] },
-  { id:'d4', name:'Deal 4', cat:'deals', price:480,
-    image:'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80',
-    desc:'2 Patty Burgers + 1 Litre Next Cola',
-    includes:['2 Patty Burgers','1 Litre Next Cola'] },
-  { id:'d5', name:'Deal 5', cat:'deals', price:550,
-    image:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    desc:'1 Zinger Burger + 1 Chicken Shawarma + Half Drink',
-    includes:['1 Zinger Burger','1 Chicken Shawarma','1 Half Drink'] },
-  { id:'d6', name:'Deal 6 — Family', cat:'deals', price:1000,
-    image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    desc:'2 Patty + 2 Zinger + 1L Cola + Loaded Fries',
-    includes:['2 Patty Burgers','2 Zinger Burgers','1 Litre Next Cola','1 Loaded Fries'] },
-  { id:'d7', name:'Deal 7 — Mega',  cat:'deals', price:1250,
-    image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    desc:'4 Zingers + 1L Cola + Loaded Fries',
-    includes:['4 Zinger Burgers','1 Litre Next Cola','1 Loaded Fries'] },
-  { id:'d8', name:'Deal 8 — Feast', cat:'deals', price:1480,
-    image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    desc:'5 Grill Burgers + 2 Loaded Fries + 1L Cola',
-    includes:['5 Grill Burgers','2 Loaded Fries','1 Litre Next Cola'] },
-  { id:'d9', name:'Deal 9 — Party', cat:'deals', price:1500,
-    image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    desc:'6 Patty Burgers + Cola + Loaded Fries',
-    includes:['6 Patty Burgers','1 Litre Next Cola','1 Loaded Fries'] },
-  { id:'d10', name:'Deal 10 — Legend', cat:'deals', price:2000,
-    image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    desc:'The ultimate party pack — feeds a crew',
-    includes:['2 Patty','2 Zinger','2 Grill Burgers','2 Loaded Fries','2L Cola'] },
-];
+window.TP = { getCart, addToCart, removeFromCart, updateCartQty, clearCart, saveCartData, DEFAULT_MENU, db, auth, uploadToImgBB, validatePromoCode, showToast, updateCartBadge };
