@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<title>Track Order — Tempura Potato</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+<style>
+.tracking-page{max-width:700px;margin:0 auto;padding:120px 24px 80px;}
+.order-id-bar{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius-sm);padding:12px 20px;font-size:13px;color:var(--gray);margin-bottom:32px;display:flex;justify-content:space-between;align-items:center;}
+.order-id-bar strong{color:var(--yellow);}
+
+/* STATUS STEPS */
+.status-track{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:36px;margin-bottom:24px;}
+.status-track h2{font-family:'Bebas Neue',cursive;font-size:26px;color:var(--white);letter-spacing:1px;margin-bottom:32px;}
+.steps{display:flex;flex-direction:column;gap:0;}
+.step{display:flex;align-items:flex-start;gap:20px;position:relative;padding-bottom:32px;}
+.step:last-child{padding-bottom:0;}
+.step::before{content:'';position:absolute;left:19px;top:42px;bottom:0;width:2px;background:rgba(255,255,255,0.08);}
+.step:last-child::before{display:none;}
+.step-icon{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--black4);border:2px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;position:relative;z-index:1;
+  transition:all 0.5s ease;
+}
+.step.done .step-icon{background:rgba(245,200,66,0.15);border-color:var(--yellow);}
+.step.active .step-icon{
+  background:var(--yellow);border-color:var(--yellow);
+  box-shadow:0 0 20px var(--yellow-glow);
+  animation:iconPulse 1.5s ease-in-out infinite;
+}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 20px var(--yellow-glow);}50%{box-shadow:0 0 40px rgba(245,200,66,0.6);}}
+.step-info{flex:1;padding-top:8px;}
+.step-name{font-family:'Bebas Neue',cursive;font-size:22px;color:rgba(255,255,255,0.3);letter-spacing:1px;transition:color 0.4s;}
+.step.done .step-name,.step.active .step-name{color:var(--white);}
+.step-desc{font-size:13px;color:var(--gray2);margin-top:2px;}
+.step.active .step-desc{color:var(--gray);}
+.step-time{font-size:12px;color:var(--yellow);margin-top:4px;display:none;}
+.step.done .step-time,.step.active .step-time{display:block;}
+
+/* ETA BAR */
+.eta-bar{background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:var(--radius-sm);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.eta-icon{font-size:36px;}
+.eta-text-label{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;}
+.eta-text-value{font-family:'Bebas Neue',cursive;font-size:28px;color:var(--yellow);}
+
+/* RIDER CARD */
+.rider-card{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:24px;margin-bottom:24px;display:none;}
+.rider-card.show{display:block;}
+.rider-card h3{font-family:'Bebas Neue',cursive;font-size:22px;color:var(--white);letter-spacing:1px;margin-bottom:16px;}
+.rider-info{display:flex;align-items:center;gap:16px;}
+.rider-avatar{width:56px;height:56px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.rider-details{flex:1;}
+.rider-name{font-weight:700;font-size:17px;color:var(--white);}
+.rider-vehicle{font-size:13px;color:var(--gray);margin-top:2px;}
+.rider-call{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.3);
+  color:var(--yellow);padding:10px 18px;border-radius:25px;
+  font-weight:700;font-size:14px;text-decoration:none;
+}
+.rider-call:hover{background:rgba(245,200,66,0.2);}
+
+/* LIVE MAP */
+.live-map{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;display:none;}
+.live-map.show{display:block;}
+.live-map iframe{width:100%;height:250px;border:none;}
+.live-map-label{padding:12px 20px;font-size:12px;color:var(--gray);display:flex;align-items:center;gap:6px;}
+.live-dot{width:8px;height:8px;background:#4CAF50;border-radius:50%;animation:blink 1s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ORDER ITEMS */
+.order-items-mini{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:24px;}
+.order-items-mini h3{font-family:'Bebas Neue',cursive;font-size:22px;color:var(--white);letter-spacing:1px;margin-bottom:16px;}
+.oi-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px;}
+.oi-item:last-child{border-bottom:none;}
+.oi-name{color:var(--white);}
+.oi-price{color:var(--yellow);font-family:'Bebas Neue',cursive;font-size:18px;}
+.oi-total{display:flex;justify-content:space-between;padding:14px 0 0;font-weight:700;font-size:16px;color:var(--white);}
+</style>
+</head>
+<body style="background:var(--black);">
+
+<nav class="navbar scrolled">
+  <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+    <div class="nav-logo-icon">🥔</div>
+    <div class="nav-logo-text"><span class="nav-brand">TEMPURA</span><span class="nav-sub">POTATO</span></div>
+  </div>
+  <div class="nav-links"><a href="index.html">← Back to Menu</a></div>
+</nav>
+
+<div class="tracking-page">
+  <div class="page-hero" style="padding:0 0 32px;text-align:left;">
+    <div class="section-tag">LIVE ORDER</div>
+    <h1 style="font-family:'Bebas Neue',cursive;font-size:clamp(36px,7vw,60px);color:var(--white);">Track Your <span style="color:var(--yellow)">Order</span></h1>
+  </div>
+
+  <div class="order-id-bar">
+    <span>Order ID: <strong id="display-order-id">—</strong></span>
+    <span id="order-timestamp" style="font-size:11px;">—</span>
+  </div>
+
+  <div class="eta-bar">
+    <div class="eta-icon">⏱️</div>
+    <div>
+      <div class="eta-text-label">Estimated Delivery</div>
+      <div class="eta-text-value" id="eta-value">25-35 mins</div>
+    </div>
+  </div>
+
+  <!-- STATUS STEPS -->
+  <div class="status-track">
+    <h2>Order Status</h2>
+    <div class="steps">
+      <div class="step" id="step-accepted">
+        <div class="step-icon">✅</div>
+        <div class="step-info">
+          <div class="step-name">Order Accepted</div>
+          <div class="step-desc">Your order has been confirmed by the restaurant</div>
+          <div class="step-time" id="time-accepted">—</div>
+        </div>
+      </div>
+      <div class="step" id="step-preparing">
+        <div class="step-icon">👨‍🍳</div>
+        <div class="step-info">
+          <div class="step-name">Preparing</div>
+          <div class="step-desc">Our chefs are cooking your food fresh</div>
+          <div class="step-time" id="time-preparing">—</div>
+        </div>
+      </div>
+      <div class="step" id="step-onway">
+        <div class="step-icon">🛵</div>
+        <div class="step-info">
+          <div class="step-name">On the Way</div>
+          <div class="step-desc">Your rider is heading to your location</div>
+          <div class="step-time" id="time-onway">—</div>
+        </div>
+      </div>
+      <div class="step" id="step-delivered">
+        <div class="step-icon">🎉</div>
+        <div class="step-info">
+          <div class="step-name">Delivered</div>
+          <div class="step-desc">Enjoy your meal! Thank you for ordering.</div>
+          <div class="step-time" id="time-delivered">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIDER CARD -->
+  <div class="rider-card" id="rider-card">
+    <h3>Your Rider</h3>
+    <div class="rider-info">
+      <div class="rider-avatar">🛵</div>
+      <div class="rider-details">
+        <div class="rider-name" id="rider-name">—</div>
+        <div class="rider-vehicle" id="rider-vehicle">—</div>
+      </div>
+      <a class="rider-call" id="rider-call" href="#">📞 Call</a>
+    </div>
+  </div>
+
+  <!-- LIVE MAP -->
+  <div class="live-map" id="live-map">
+    <iframe id="map-iframe" src="https://maps.google.com/maps?q=31.5204,74.3587&z=14&output=embed" allowfullscreen></iframe>
+    <div class="live-map-label"><div class="live-dot"></div> Live location updating...</div>
+  </div>
+
+  <!-- ORDER ITEMS -->
+  <div class="order-items-mini">
+    <h3>Your Items</h3>
+    <div id="order-items-list">
+      <p style="color:var(--gray);font-size:14px;">Loading order details...</p>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="core.js"></script>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const orderId = urlParams.get('order') || 'demo';
+document.getElementById('display-order-id').textContent = '#' + orderId;
+
+const statusMap = { pending:0, accepted:1, preparing:2, onway:3, delivered:4 };
+const stepIds = ['step-accepted','step-preparing','step-onway','step-delivered'];
+const timeIds = ['time-accepted','time-preparing','time-onway','time-delivered'];
+
+function updateSteps(status) {
+  const level = statusMap[status] || 0;
+  stepIds.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('done','active');
+    if (i < level) el.classList.add('done');
+    else if (i === level - 1) el.classList.add('active');
+  });
+  // Show rider on onway+
+  if (level >= 3) {
+    document.getElementById('rider-card').classList.add('show');
+    document.getElementById('live-map').classList.add('show');
+  }
+  if (status === 'delivered') {
+    document.getElementById('eta-value').textContent = 'Delivered! 🎉';
+    document.getElementById('live-map').classList.remove('show');
+  }
+}
+
+function renderOrderItems(order) {
+  const list = document.getElementById('order-items-list');
+  if (!order?.items?.length) { list.innerHTML = '<p style="color:var(--gray)">No items found</p>'; return; }
+  list.innerHTML = order.items.map(item =>
+    `<div class="oi-item"><span class="oi-name">${item.emoji} ${item.name} ×${item.qty}</span><span class="oi-price">Rs.${item.price * item.qty}</span></div>`
+  ).join('') + `<div class="oi-total"><span>Total</span><span style="color:var(--yellow);font-family:'Bebas Neue',cursive;font-size:24px;">Rs. ${order.total || order.subtotal || 0}</span></div>`;
+  if (order.timestamp) document.getElementById('order-timestamp').textContent = new Date(order.timestamp).toLocaleTimeString();
+}
+
+function setRider(riderData) {
+  if (!riderData) return;
+  document.getElementById('rider-name').textContent = riderData.name || 'Rider';
+  document.getElementById('rider-vehicle').textContent = riderData.vehicle || 'Motorcycle';
+  const callEl = document.getElementById('rider-call');
+  if (riderData.phone) callEl.href = 'tel:' + riderData.phone;
+  if (riderData.lat && riderData.lng) {
+    document.getElementById('map-iframe').src =
+      `https://maps.google.com/maps?q=${riderData.lat},${riderData.lng}&z=15&output=embed`;
+  }
+}
+
+// Demo mode (no real order)
+function runDemoMode() {
+  const demoOrder = { items: JSON.parse(localStorage.getItem('tp_cart_v2')||'[]'), total: 0, subtotal: 0, timestamp: Date.now() };
+  demoOrder.total = demoOrder.items.reduce((s,c) => s + c.price * c.qty, 0) + 60;
+  renderOrderItems(demoOrder);
+  const statuses = ['accepted','preparing','onway','delivered'];
+  let i = 0;
+  function advance() {
+    updateSteps(statuses[i]);
+    if (statuses[i] === 'onway') setRider({ name:'Ahmed Khan', vehicle:'Honda 125 • ABC-123', phone:'+923001234567', lat:31.5204, lng:74.3587 });
+    if (i < statuses.length - 1) { i++; setTimeout(advance, 4000 + Math.random() * 2000); }
+  }
+  advance();
+}
+
+// Real Firebase mode
+function listenOrder(id) {
+  const db = getDB();
+  if (!db || id === 'demo') { runDemoMode(); return; }
+  db.ref('orders/' + id).on('value', snap => {
+    const order = snap.val();
+    if (!order) { runDemoMode(); return; }
+    updateSteps(order.status || 'pending');
+    renderOrderItems(order);
+    if (order.rider) setRider(order.rider);
+  });
+}
+
+listenOrder(orderId);
+</script>
+</body>
+</html>

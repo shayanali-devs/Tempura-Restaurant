@@ -1,0 +1,40 @@
+{
+  "name": "Tempura Potato",
+  "short_name": "Tempura Potato",
+  "description": "Lahore's finest burgers, wraps & deals. Order online!",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "categories": ["food", "lifestyle"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230a0a0a' rx='24'/><text y='130' x='20' font-size='110'>🥔</text><text y='185' x='10' font-size='18' fill='%23f5c842' font-family='sans-serif' font-weight='bold'>TEMPURA</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230a0a0a' rx='60'/><text y='340' x='40' font-size='280'>🥔</text><text y='490' x='20' font-size='48' fill='%23f5c842' font-family='sans-serif' font-weight='bold'>TEMPURA POTATO</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Order Now",
+      "short_name": "Order",
+      "description": "Go to checkout",
+      "url": "/checkout.html",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text y='80' font-size='80'>🛒</text></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "View Menu",
+      "short_name": "Menu",
+      "url": "/index.html#menu",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text y='80' font-size='80'>🍔</text></svg>", "sizes": "96x96" }]
+    }
+  ]
+}

@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#080808"/>
+<title>Admin Panel — Tempura Potato</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ORDER ALERT -->
+<div class="order-alert-overlay" id="order-alert">
+  <div class="order-alert-box">
+    <div class="alert-ring-emoji">🔔</div>
+    <div class="alert-title">New Order!</div>
+    <div class="alert-sub" id="alert-summary">Loading...</div>
+    <div class="alert-btns">
+      <button class="alert-accept" onclick="respondAlert('accepted')">✅ Accept</button>
+      <button class="alert-decline" onclick="respondAlert('declined')">✕ Decline</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="adm-login" id="adm-login">
+  <div class="adm-login-box">
+    <div style="font-size:48px;margin-bottom:8px">🥔</div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--yellow);letter-spacing:2px;margin-bottom:4px">TEMPURA POTATO</div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:30px;color:var(--white);margin-bottom:28px">Admin Panel</div>
+    <input class="form-input" type="password" id="adm-pass-inp" placeholder="Admin password" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="btn btn-primary" style="width:100%;padding:14px" onclick="doLogin()">Login →</button>
+    <p id="login-err" style="color:#f44;font-size:13px;margin-top:10px;display:none">Wrong password. Try again.</p>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div class="adm-app" id="adm-app">
+  <div class="adm-sidebar" id="adm-sidebar">
+    <div class="adm-logo">
+      <div style="font-size:28px;margin-bottom:4px">🥔</div>
+      <div style="font-family:'Bebas Neue',cursive;font-size:16px;color:var(--yellow);letter-spacing:2px">TEMPURA POTATO</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:2px">Admin Dashboard</div>
+    </div>
+    <div class="adm-nav">
+      <div class="adm-nav-sec">Main</div>
+      <div class="adm-nav-item active" onclick="showPanel('dashboard')"><span class="adm-nav-icon">📊</span>Dashboard</div>
+      <div class="adm-nav-item" onclick="showPanel('orders')"><span class="adm-nav-icon">🛒</span>Orders<span id="pending-badge" style="background:var(--yellow);color:var(--black);border-radius:20px;padding:1px 8px;font-size:10px;margin-left:auto;font-weight:800"></span></div>
+      <div class="adm-nav-item" onclick="showPanel('menu')"><span class="adm-nav-icon">🍔</span>Menu Editor</div>
+      <div class="adm-nav-sec">Management</div>
+      <div class="adm-nav-item" onclick="showPanel('promos')"><span class="adm-nav-icon">🎟️</span>Promo Codes</div>
+      <div class="adm-nav-item" onclick="showPanel('riders')"><span class="adm-nav-icon">🛵</span>Riders</div>
+      <div class="adm-nav-item" onclick="showPanel('branding')"><span class="adm-nav-icon">🎨</span>Branding</div>
+      <div class="adm-nav-item" onclick="showPanel('maintenance')"><span class="adm-nav-icon">🔧</span>Maintenance</div>
+      <div class="adm-nav-sec">Developer</div>
+      <div class="adm-nav-item" onclick="showPanel('devsettings')"><span class="adm-nav-icon">🔐</span>Dev Settings</div>
+    </div>
+    <div class="adm-logout"><button onclick="doLogout()">← Logout</button></div>
+  </div>
+
+  <div class="adm-main">
+    <div class="adm-topbar">
+      <button class="adm-menu-toggle" onclick="document.getElementById('adm-sidebar').classList.toggle('open')">☰</button>
+      <h1 id="panel-title">Dash<span>board</span></h1>
+      <div style="font-size:12px;color:var(--gray)" id="adm-clock"></div>
+    </div>
+
+    <!-- MONTHLY ALERTS -->
+    <div class="monthly-alert-banner" id="monthly-alert"></div>
+
+    <!-- ── DASHBOARD ── -->
+    <div class="adm-panel active" id="panel-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-label">Today's Orders</div><div class="sc-val" id="stat-today">0</div><div class="sc-sub">All statuses</div></div>
+        <div class="stat-card"><div class="sc-label">Pending</div><div class="sc-val" id="stat-pending">0</div><div class="sc-sub">Need action</div></div>
+        <div class="stat-card"><div class="sc-label">Today's Revenue</div><div class="sc-val" id="stat-rev">0</div><div class="sc-sub">Delivered orders</div></div>
+        <div class="stat-card"><div class="sc-label">Active Riders</div><div class="sc-val" id="stat-riders-count">0</div><div class="sc-sub">Registered</div></div>
+        <div class="stat-card"><div class="sc-label">Total Orders</div><div class="sc-val" id="stat-total">0</div><div class="sc-sub">All time</div></div>
+        <div class="stat-card"><div class="sc-label">Promo Uses</div><div class="sc-val" id="stat-promos">0</div><div class="sc-sub">This month</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Recent Orders</h3></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody id="dashboard-orders"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── ORDERS ── -->
+    <div class="adm-panel" id="panel-orders">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" id="order-filters">
+        <button class="tab active" onclick="filterOrders('all',this)">All</button>
+        <button class="tab" onclick="filterOrders('pending',this)">Pending</button>
+        <button class="tab" onclick="filterOrders('accepted',this)">Accepted</button>
+        <button class="tab" onclick="filterOrders('preparing',this)">Preparing</button>
+        <button class="tab" onclick="filterOrders('onway',this)">On Way</button>
+        <button class="tab" onclick="filterOrders('delivered',this)">Delivered</button>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>All Orders</h3><button class="save-btn" onclick="exportOrders()">Export CSV</button></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Address</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody id="all-orders"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── MENU EDITOR ── -->
+    <div class="adm-panel" id="panel-menu">
+      <div class="settings-card" style="margin-bottom:20px">
+        <h3>Add New Item</h3>
+        <div class="add-menu-form">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fr"><label>Item Name</label><input class="fi" id="new-item-name" placeholder="e.g. Spicy Wrap"/></div>
+            <div class="fr"><label>Category</label>
+              <select class="fi" id="new-item-cat">
+                <option value="burgers">Burgers</option>
+                <option value="wraps">Wraps & Rolls</option>
+                <option value="shawarma">Shawarma</option>
+                <option value="sides">Sides</option>
+                <option value="deals">Deals</option>
+              </select>
+            </div>
+            <div class="fr"><label>Price (Rs.)</label><input class="fi" id="new-item-price" type="number" placeholder="350"/></div>
+            <div class="fr"><label>Description</label><input class="fi" id="new-item-desc" placeholder="Short description"/></div>
+          </div>
+          <div class="fr" style="margin-top:12px"><label>Item Image</label>
+            <div class="upload-zone" onclick="document.getElementById('new-item-img-inp').click()">
+              <input type="file" id="new-item-img-inp" accept="image/*" onchange="previewNewItem(this)"/>
+              <div style="font-size:32px">📷</div>
+              <div class="upload-zone-text">Click to upload or paste an image URL below</div>
+              <img id="new-item-preview" class="upload-preview"/>
+            </div>
+            <input class="fi" id="new-item-img-url" placeholder="Or paste image URL" style="margin-top:8px"/>
+          </div>
+          <button class="save-btn" style="margin-top:4px" onclick="addMenuItem()">Add Item to Menu</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Current Menu Items</h3><button class="save-btn" onclick="syncMenuToFirebase()">Sync All to Firebase</button></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Image</th><th>Name</th><th>Cat</th><th>Price</th><th>New Price</th><th>Action</th></tr></thead><tbody id="menu-table-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── PROMO CODES ── -->
+    <div class="adm-panel" id="panel-promos">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Create Promo Code</h3>
+          <div class="fr"><label>Code</label><input class="fi" id="promo-code-inp" placeholder="e.g. SUMMER25" style="text-transform:uppercase"/></div>
+          <div class="fr"><label>Discount %</label><input class="fi" type="number" id="promo-disc-inp" placeholder="20" min="1" max="100"/></div>
+          <div class="fr"><label>Expiry Date</label><input class="fi" type="datetime-local" id="promo-exp-inp"/></div>
+          <div class="fr"><label>Usage Limit (0 = unlimited)</label><input class="fi" type="number" id="promo-limit-inp" value="0"/></div>
+          <button class="save-btn" onclick="createPromo()">Create Promo Code</button>
+        </div>
+        <div class="settings-card">
+          <h3>Active Promo Codes</h3>
+          <div id="promo-list-wrap"><p style="color:var(--gray);font-size:13px">Loading...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIDERS ── -->
+    <div class="adm-panel" id="panel-riders">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Register New Rider</h3>
+          <div class="fr"><label>Name</label><input class="fi" id="r-name"/></div>
+          <div class="fr"><label>Phone</label><input class="fi" id="r-phone" type="tel"/></div>
+          <div class="fr"><label>Vehicle</label><input class="fi" id="r-vehicle" placeholder="Honda 125 · ABC-123"/></div>
+          <button class="save-btn" onclick="registerRider()">Generate Code & Register</button>
+        </div>
+        <div class="settings-card" id="new-code-card" style="display:none">
+          <h3>Code Generated!</h3>
+          <div class="rider-code-box" id="rider-code-box">——</div>
+          <p style="font-size:13px;color:var(--gray);text-align:center">Share this code with the rider to sign in to the Rider App</p>
+        </div>
+      </div>
+      <div class="tbl-wrap" style="margin-top:20px">
+        <div class="tbl-head"><h3>Registered Riders</h3></div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Phone</th><th>Vehicle</th><th>Code</th><th>Status</th><th>Action</th></tr></thead><tbody id="riders-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── BRANDING ── -->
+    <div class="adm-panel" id="panel-branding">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Brand Identity</h3>
+          <div class="fr"><label>Restaurant Name</label><input class="fi" id="b-name" value="Tempura Potato"/></div>
+          <div class="fr"><label>Tagline</label><input class="fi" id="b-tagline" value="Lahore's Finest"/></div>
+          <div class="fr"><label>Phone</label><input class="fi" id="b-phone" value="+92-3044888775"/></div>
+          <div class="fr"><label>Address</label><input class="fi" id="b-address" value="Main Bazar Nishat Colony, Milad Chock, Lahore"/></div>
+          <div class="fr"><label>Logo Emoji</label><input class="fi" id="b-logo" value="🥔" maxlength="4"/></div>
+          <button class="save-btn" onclick="saveBranding()">Save Identity</button>
+        </div>
+        <div class="settings-card">
+          <h3>Accent Color</h3>
+          <div class="fr"><label>Primary Color (applies to ALL pages)</label>
+            <div class="color-row"><input type="color" id="b-color" value="#f5c842" oninput="document.getElementById('b-color-hex').value=this.value;liveColorPreview(this.value)"/><input type="text" class="fi" id="b-color-hex" value="#f5c842" oninput="document.getElementById('b-color').value=this.value;liveColorPreview(this.value)"/></div>
+          </div>
+          <div class="fr"><label>Background Color</label>
+            <div class="color-row"><input type="color" id="b-bg" value="#080808"/><input type="text" class="fi" id="b-bg-hex" value="#080808"/></div>
+          </div>
+          <div class="fr"><label>Card Color</label>
+            <div class="color-row"><input type="color" id="b-card" value="#181818"/><input type="text" class="fi" id="b-card-hex" value="#181818"/></div>
+          </div>
+          <button class="save-btn" onclick="saveColors()">Apply Colors to Site</button>
+        </div>
+        <div class="settings-card">
+          <h3>Hero Section</h3>
+          <div class="fr"><label>Hero Headline</label><input class="fi" id="b-hero-h" value="OBSESSION"/></div>
+          <div class="fr"><label>Hero Sub Text</label><textarea class="fi" id="b-hero-s" rows="3">Premium burgers. Legendary wraps. Deals that hit different.</textarea></div>
+          <div class="fr"><label>Hero Badge Text</label><input class="fi" id="b-hero-badge" value="🔥 Lahore's Fastest Growing Restaurant"/></div>
+          <div class="fr"><label>Hero Image URL</label><input class="fi" id="b-hero-img" placeholder="https://..."/>
+            <div class="upload-zone" style="margin-top:8px" onclick="document.getElementById('hero-img-up').click()">
+              <input type="file" id="hero-img-up" accept="image/*" onchange="uploadAndSet(this,'b-hero-img','hero-img-preview')"/>
+              <div style="font-size:24px">📤</div><div class="upload-zone-text">Upload hero image via ImgBB</div>
+              <img id="hero-img-preview" class="upload-preview"/>
+            </div>
+          </div>
+          <button class="save-btn" onclick="saveHero()">Save Hero</button>
+        </div>
+        <div class="settings-card">
+          <h3>Typography & Style</h3>
+          <div class="fr"><label>Display Font</label>
+            <select class="fi" id="b-font">
+              <option value="Bebas Neue">Bebas Neue (Current)</option>
+              <option value="Oswald">Oswald</option>
+              <option value="Anton">Anton</option>
+              <option value="Barlow Condensed">Barlow Condensed</option>
+              <option value="Black Han Sans">Black Han Sans</option>
+            </select>
+          </div>
+          <div class="fr"><label>Button Style</label>
+            <select class="fi" id="b-btn-style">
+              <option value="rounded">Pill / Rounded</option>
+              <option value="square">Square / Sharp</option>
+              <option value="slight">Slight Radius</option>
+            </select>
+          </div>
+          <div class="fr"><label>Card Style</label>
+            <select class="fi" id="b-card-style">
+              <option value="rounded">Rounded Cards</option>
+              <option value="sharp">Sharp Cards</option>
+              <option value="glow">Glow Cards</option>
+            </select>
+          </div>
+          <button class="save-btn" onclick="saveTypography()">Apply Style</button>
+        </div>
+        <div class="settings-card">
+          <h3>Announcement Bar</h3>
+          <div class="fr"><label>Banner Text</label><input class="fi" id="b-banner" value="Install the app &amp; get 20% OFF your first order!"/></div>
+          <div class="fr"><label>Banner Color</label>
+            <div class="color-row"><input type="color" id="b-banner-color" value="#f5c842"/><input type="text" class="fi" id="b-banner-color-hex" value="#f5c842"/></div>
+          </div>
+          <div class="fr maint-toggle"><label style="margin:0">Show Banner</label>
+            <label class="toggle-sw"><input type="checkbox" id="b-banner-show" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <button class="save-btn" onclick="saveBanner()">Save Banner</button>
+        </div>
+        <div class="settings-card">
+          <h3>Order Settings</h3>
+          <div class="fr"><label>WhatsApp Number</label><input class="fi" id="b-wa" placeholder="923044888775"/></div>
+          <div class="fr"><label>Delivery Fee (Rs.)</label><input class="fi" type="number" id="b-del-fee" value="60"/></div>
+          <div class="fr"><label>Min. Order (Rs.)</label><input class="fi" type="number" id="b-min-order" value="0"/></div>
+          <div class="fr"><label>Estimated Delivery Time</label><input class="fi" id="b-eta" value="25-35 mins"/></div>
+          <button class="save-btn" onclick="saveOrderSettings()">Save</button>
+        </div>
+        <div class="settings-card">
+          <h3>Opening Hours</h3>
+          <div class="fr"><label>Mon–Fri</label><input class="fi" id="b-hrs-weekday" value="12:00 PM – 1:00 AM"/></div>
+          <div class="fr"><label>Saturday</label><input class="fi" id="b-hrs-sat" value="12:00 PM – 2:00 AM"/></div>
+          <div class="fr"><label>Sunday</label><input class="fi" id="b-hrs-sun" value="12:00 PM – 2:00 AM"/></div>
+          <div class="fr maint-toggle"><label style="margin:0">Currently Open</label>
+            <label class="toggle-sw"><input type="checkbox" id="b-is-open" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <button class="save-btn" onclick="saveHours()">Save Hours</button>
+        </div>
+        <div class="settings-card">
+          <h3>Social Media Links</h3>
+          <div class="fr"><label>Instagram</label><input class="fi" id="b-instagram" placeholder="@tempurapotato"/></div>
+          <div class="fr"><label>Facebook</label><input class="fi" id="b-facebook" placeholder="facebook.com/tempurapotato"/></div>
+          <div class="fr"><label>TikTok</label><input class="fi" id="b-tiktok" placeholder="@tempurapotato"/></div>
+          <button class="save-btn" onclick="saveSocial()">Save Links</button>
+        </div>
+        <div class="settings-card">
+          <h3>SEO Settings</h3>
+          <div class="fr"><label>Page Title</label><input class="fi" id="b-seo-title" value="Tempura Potato — Lahore's Finest Fast Food"/></div>
+          <div class="fr"><label>Meta Description</label><textarea class="fi" id="b-seo-desc" rows="3">Premium burgers, wraps & deals in Lahore. Order online.</textarea></div>
+          <div class="fr"><label>Google Maps Link</label><input class="fi" id="b-maps-link" placeholder="https://goo.gl/maps/..."/></div>
+          <button class="save-btn" onclick="saveSEO()">Save SEO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAINTENANCE ── -->
+    <div class="adm-panel" id="panel-maintenance">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Maintenance Mode</h3>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Enable to show a maintenance banner on the website. Customers will still be able to browse but a warning appears.</p>
+          <div class="fr maint-toggle"><label style="margin:0">Maintenance Mode</label>
+            <label class="toggle-sw"><input type="checkbox" id="maint-toggle-switch"/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="fr" style="margin-top:12px"><label>Maintenance Message</label><input class="fi" id="maint-msg" value="Site under maintenance. Back soon!"/></div>
+          <button class="save-btn" onclick="saveMaintenance()">Save</button>
+        </div>
+        <div class="settings-card" style="border-color:rgba(255,165,0,.3)">
+          <h3 style="color:#FFA500">Monthly Reminders</h3>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:16px">These are your monthly tasks. Check them off to reset the 30-day timer.</p>
+          <div id="monthly-tasks-list">Loading...</div>
+          <button class="save-btn" style="margin-top:16px" onclick="resetMonthlyTasks()">Reset All Timers</button>
+        </div>
+        <div class="settings-card">
+          <h3>Promo Code Renewal</h3>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Expired codes are listed here. Renew them to keep discounts active.</p>
+          <div id="expired-promos">Loading...</div>
+        </div>
+        <div class="settings-card">
+          <h3>Menu Price Review</h3>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:16px">A reminder fires every 30 days to review and update your menu prices.</p>
+          <div id="price-review-status" style="font-size:13px;color:var(--yellow);margin-bottom:16px">Checking...</div>
+          <button class="save-btn" onclick="ackPriceReview()">Mark Prices Reviewed ✓</button>
+        </div>
+        <div class="settings-card">
+          <h3>Firebase Storage Review</h3>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:12px">Reminder to archive old orders and keep database lean.</p>
+          <div id="db-review-status" style="font-size:13px;color:var(--yellow);margin-bottom:12px">Checking...</div>
+          <button class="save-btn" onclick="archiveOldOrders()">Archive Orders Older than 30 Days</button>
+        </div>
+        <div class="settings-card">
+          <h3>Analytics Report</h3>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:12px">Monthly report of top items and revenue.</p>
+          <div id="analytics-report">Generating...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEV SETTINGS ── -->
+    <div class="adm-panel" id="panel-devsettings">
+      <div id="dev-locked">
+        <div style="text-align:center;padding:60px 24px">
+          <div style="font-size:64px;margin-bottom:14px">🔐</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:30px;color:var(--white);margin-bottom:8px">Developer Settings</div>
+          <p style="font-size:14px;color:var(--gray);margin-bottom:24px">Restricted area. Enter developer password to continue.</p>
+          <input class="form-input" type="password" id="dev-pass-inp" placeholder="Developer password" style="max-width:300px;margin:0 auto 14px;display:block" onkeydown="if(event.key==='Enter')unlockDev()"/>
+          <button class="btn btn-primary" onclick="unlockDev()">Unlock →</button>
+          <p id="dev-err" style="color:#f44;font-size:13px;margin-top:10px;display:none">Wrong password.</p>
+        </div>
+      </div>
+      <div id="dev-unlocked" style="display:none">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Change Passwords</h3>
+            <div class="fr"><label>New Admin Password</label><input type="password" class="fi" id="new-adm-pass" placeholder="New admin password"/></div>
+            <div class="fr"><label>New Dev Password</label><input type="password" class="fi" id="new-dev-pass" placeholder="New dev password"/></div>
+            <button class="save-btn" onclick="savePasswords()">Update Passwords</button>
+          </div>
+          <div class="settings-card">
+            <h3>Full Rebranding Tool</h3>
+            <div class="fr"><label>Hero Background Style</label>
+              <select class="fi" id="dev-bg-style">
+                <option value="grid">Grid Pattern</option>
+                <option value="solid">Solid Dark</option>
+                <option value="gradient">Radial Gradient</option>
+                <option value="noise">Noise Texture</option>
+              </select>
+            </div>
+            <div class="fr"><label>Cursor Style</label>
+              <select class="fi" id="dev-cursor">
+                <option value="custom">Custom Yellow Dot</option>
+                <option value="default">Default Browser</option>
+              </select>
+            </div>
+            <div class="fr"><label>Animation Speed</label>
+              <select class="fi" id="dev-anim-speed">
+                <option value="normal">Normal</option>
+                <option value="fast">Fast</option>
+                <option value="slow">Slow</option>
+                <option value="none">Disabled</option>
+              </select>
+            </div>
+            <button class="save-btn" onclick="applyRebranding()">Apply Rebranding</button>
+          </div>
+          <div class="settings-card">
+            <h3>ImgBB Image Manager</h3>
+            <p style="font-size:13px;color:var(--gray);margin-bottom:14px">Upload images to ImgBB hosting and use their URLs anywhere on the site.</p>
+            <div class="upload-zone" onclick="document.getElementById('imgbb-upload-inp').click()">
+              <input type="file" id="imgbb-upload-inp" accept="image/*" onchange="uploadImgBBDev(this)"/>
+              <div style="font-size:32px">📤</div>
+              <div class="upload-zone-text">Click to upload image to ImgBB</div>
+            </div>
+            <div id="imgbb-result" style="margin-top:12px;font-size:13px;display:none">
+              <div style="color:var(--yellow);font-weight:700;margin-bottom:6px">✅ Uploaded!</div>
+              <input class="fi" id="imgbb-url-result" readonly onclick="this.select()"/>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Firebase Configuration</h3>
+            <div class="fr"><label>Database URL</label><input class="fi" id="dev-fb-url" value="https://tempura-potato-deep-default-rtdb.firebaseio.com"/></div>
+            <div class="fr"><label>Project ID</label><input class="fi" id="dev-fb-proj" value="tempura-potato-deep"/></div>
+            <div class="fr"><label>API Key</label><input class="fi" id="dev-fb-key" type="password" placeholder="Hidden"/></div>
+            <button class="save-btn" onclick="saveFirebaseConfig()">Save Config</button>
+          </div>
+          <div class="settings-card">
+            <h3>Loyalty Program</h3>
+            <div class="fr maint-toggle"><label style="margin:0">Enable Loyalty Points</label>
+              <label class="toggle-sw"><input type="checkbox" id="dev-loyalty"/><span class="toggle-slider"></span></label>
+            </div>
+            <div class="fr"><label>Points per Rs. spent</label><input class="fi" type="number" id="dev-pts-rate" value="1"/></div>
+            <div class="fr"><label>Rs. per point (redemption)</label><input class="fi" type="number" id="dev-pts-val" value="0.5"/></div>
+            <button class="save-btn" onclick="saveLoyalty()">Save Loyalty</button>
+          </div>
+          <div class="settings-card">
+            <h3>Delivery Zones</h3>
+            <div class="fr"><label>Zone 1 (0-3km) Fee Rs.</label><input class="fi" type="number" id="dev-zone1" value="40"/></div>
+            <div class="fr"><label>Zone 2 (3-7km) Fee Rs.</label><input class="fi" type="number" id="dev-zone2" value="80"/></div>
+            <div class="fr"><label>Zone 3 (7km+) Fee Rs.</label><input class="fi" type="number" id="dev-zone3" value="120"/></div>
+            <div class="fr"><label>Free Delivery Above Rs.</label><input class="fi" type="number" id="dev-free-del" value="1500"/></div>
+            <button class="save-btn" onclick="saveDeliveryZones()">Save Zones</button>
+          </div>
+          <div class="settings-card">
+            <h3>Notification Settings</h3>
+            <div class="fr maint-toggle"><label style="margin:0">Browser Alert Sound</label>
+              <label class="toggle-sw"><input type="checkbox" id="dev-alert-sound" checked/><span class="toggle-slider"></span></label>
+            </div>
+            <div class="fr maint-toggle"><label style="margin:0">Email Notifications</label>
+              <label class="toggle-sw"><input type="checkbox" id="dev-email-notif"/><span class="toggle-slider"></span></label>
+            </div>
+            <div class="fr"><label>Notification Email</label><input class="fi" id="dev-notif-email" placeholder="admin@tempurapotato.com" type="email"/></div>
+            <button class="save-btn" onclick="saveNotifSettings()">Save</button>
+          </div>
+          <div class="settings-card" style="border-color:rgba(244,67,54,.2)">
+            <h3 style="color:#F44336">Danger Zone</h3>
+            <button class="danger-btn danger-red" onclick="confirmClearOrders()">🗑️ Clear All Orders</button>
+            <button class="danger-btn danger-outline" onclick="confirmResetSettings()">⚠️ Reset All Settings</button>
+            <button class="danger-btn danger-outline" onclick="confirmClearRiders()">🛵 Remove All Riders</button>
+            <button class="danger-btn danger-outline" onclick="exportFullBackup()">💾 Export Full Backup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="core.js"></script>
+<script>
+// ── AUTH ──────────────────────────────────────────────────────
+const getPass = ()=>localStorage.getItem('tp_adm_pass')||'admin123';
+const getDevPass = ()=>localStorage.getItem('tp_dev_pass')||'devpass2026';
+
+function doLogin(){
+  if(document.getElementById('adm-pass-inp').value===getPass()){
+    document.getElementById('adm-login').style.display='none';
+    document.getElementById('adm-app').style.display='flex';
+    localStorage.setItem('tp_adm_sess','1');
+    bootAdmin();
+  } else { document.getElementById('login-err').style.display='block'; }
+}
+function doLogout(){ localStorage.removeItem('tp_adm_sess'); location.reload(); }
+if(localStorage.getItem('tp_adm_sess')){
+  document.getElementById('adm-login').style.display='none';
+  document.getElementById('adm-app').style.display='flex';
+  bootAdmin();
+}
+function unlockDev(){
+  if(document.getElementById('dev-pass-inp').value===getDevPass()){
+    document.getElementById('dev-locked').style.display='none';
+    document.getElementById('dev-unlocked').style.display='block';
+  } else document.getElementById('dev-err').style.display='block';
+}
+
+// ── PANELS ────────────────────────────────────────────────────
+const panelTitles={dashboard:'Dash<span>board</span>',orders:'All <span>Orders</span>',menu:'Menu <span>Editor</span>',promos:'Promo <span>Codes</span>',riders:'Rider <span>Management</span>',branding:'Brand<span>ing</span>',maintenance:'Main<span>tenance</span>',devsettings:'Dev <span>Settings</span>'};
+function showPanel(name){
+  document.querySelectorAll('.adm-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.adm-nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name)?.classList.add('active');
+  event?.target?.closest('.adm-nav-item')?.classList.add('active');
+  document.getElementById('panel-title').innerHTML=panelTitles[name]||name;
+  document.getElementById('adm-sidebar').classList.remove('open');
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────
+setInterval(()=>{ document.getElementById('adm-clock').textContent=new Date().toLocaleString('en-PK',{dateStyle:'medium',timeStyle:'short'}); },1000);
+
+// ── FIREBASE ──────────────────────────────────────────────────
+let db, allOrders={}, allRiders={};
+let alertOrderId=null, knownOrders=new Set();
+
+function bootAdmin(){
+  db=getDB();
+  renderMenuTable();
+  loadBrandingFields();
+  initMonthlyChecks();
+  if(!db) return;
+  db.ref('orders').on('value',snap=>{
+    allOrders=snap.val()||{};
+    renderDashboard();
+    renderOrdersTable('all');
+    checkNewOrders();
+  });
+  db.ref('riders').on('value',snap=>{ allRiders=snap.val()||{}; renderRidersTable(); document.getElementById('stat-riders-count').textContent=Object.keys(allRiders).length; });
+  db.ref('promoCodes').on('value',snap=>renderPromoList(snap.val()||{}));
+  db.ref('settings').once('value').then(s=>{
+    const v=s.val()||{};
+    const b=v.branding||{};
+    if(b.name) document.getElementById('b-name').value=b.name;
+    if(b.tagline) document.getElementById('b-tagline').value=b.tagline;
+    if(b.phone) document.getElementById('b-phone').value=b.phone;
+    if(b.address) document.getElementById('b-address').value=b.address;
+    if(b.logoEmoji) document.getElementById('b-logo').value=b.logoEmoji;
+    if(b.accentColor){ document.getElementById('b-color').value=b.accentColor; document.getElementById('b-color-hex').value=b.accentColor; }
+    if(v.waNumber) document.getElementById('b-wa').value=v.waNumber;
+    if(v.deliveryFee) document.getElementById('b-del-fee').value=v.deliveryFee;
+    if(v.eta) document.getElementById('b-eta').value=v.eta;
+  });
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard(){
+  const today=new Date().toDateString();
+  const orders=Object.values(allOrders);
+  const todayO=orders.filter(o=>new Date(o.timestamp).toDateString()===today);
+  const pending=orders.filter(o=>o.status==='pending');
+  const rev=todayO.filter(o=>o.status==='delivered').reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('stat-today').textContent=todayO.length;
+  document.getElementById('stat-pending').textContent=pending.length;
+  document.getElementById('stat-rev').textContent=rev;
+  document.getElementById('stat-total').textContent=orders.length;
+  document.getElementById('pending-badge').textContent=pending.length||'';
+  renderOrderRows(document.getElementById('dashboard-orders'), orders.slice(-8).reverse(), false);
+}
+
+// ── ORDERS ────────────────────────────────────────────────────
+let orderFilterCurrent='all';
+window.filterOrders=function(f,el){
+  orderFilterCurrent=f;
+  document.querySelectorAll('#order-filters .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOrdersTable(f);
+};
+function renderOrdersTable(filter){
+  let orders=Object.values(allOrders).reverse();
+  if(filter!=='all') orders=orders.filter(o=>o.status===filter);
+  renderOrderRows(document.getElementById('all-orders'), orders, true);
+}
+function renderOrderRows(tbody,orders,full){
+  if(!orders.length){ tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:36px">No orders yet</td></tr>`; return; }
+  tbody.innerHTML=orders.map(o=>`
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:var(--gray)">#${(o.id||'').slice(-6)}</td>
+      <td>${o.customer?.name||'—'}</td>
+      ${full?`<td>${o.customer?.phone||'—'}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${o.address||'—'}</td>`:''}
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${(o.items||[]).map(i=>i.name).join(', ')}</td>
+      <td style="font-family:'Bebas Neue',cursive;font-size:18px;color:var(--yellow)">Rs.${o.total||0}</td>
+      <td><span class="sbadge sb-${o.status||'pending'}">${o.status||'pending'}</span></td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        ${o.status==='pending'?`<button class="act-btn green" onclick="setOrderStatus('${o.id}','accepted')">Accept</button><button class="act-btn red" onclick="setOrderStatus('${o.id}','declined')">Decline</button>`:''}
+        ${o.status==='accepted'?`<button class="act-btn" onclick="setOrderStatus('${o.id}','preparing')">Preparing</button>`:''}
+        ${o.status==='preparing'?`<button class="act-btn" onclick="setOrderStatus('${o.id}','onway')">On Way</button>`:''}
+        ${o.status==='onway'?`<button class="act-btn green" onclick="setOrderStatus('${o.id}','delivered')">Delivered</button>`:''}
+      </td>
+    </tr>
+  `).join('');
+}
+async function setOrderStatus(id,status){
+  if(!db) return;
+  await db.ref('orders/'+id+'/status').set(status);
+  await db.ref('orders/'+id+'/statusLog/'+status).set(Date.now());
+  Toast.show(`Order #${id.slice(-6)} → ${status}`);
+  if(alertOrderId===id) document.getElementById('order-alert').classList.remove('show');
+}
+function checkNewOrders(){
+  Object.entries(allOrders).forEach(([id,o])=>{
+    if(o.status==='pending'&&!knownOrders.has(id)){
+      if(knownOrders.size>0) triggerOrderAlert(id,o);
+      knownOrders.add(id);
+    }
+  });
+  if(knownOrders.size===0) Object.keys(allOrders).forEach(id=>knownOrders.add(id));
+}
+function triggerOrderAlert(id,order){
+  alertOrderId=id;
+  document.getElementById('alert-summary').innerHTML=`<strong>${order.customer?.name||'Customer'}</strong> ordered ${(order.items||[]).length} item(s)<br/>Total: <strong>Rs. ${order.total||0}</strong>`;
+  document.getElementById('order-alert').classList.add('show');
+  if(localStorage.getItem('dev_alert_sound')!=='false') try{ new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAA==').play(); }catch(e){}
+}
+window.respondAlert=function(s){ if(alertOrderId) setOrderStatus(alertOrderId,s); document.getElementById('order-alert').classList.remove('show'); };
+
+function exportOrders(){
+  const orders=Object.values(allOrders);
+  if(!orders.length){ Toast.show('No orders to export'); return; }
+  const csv=['ID,Customer,Phone,Items,Total,Status,Date']
+    .concat(orders.map(o=>`${o.id},${o.customer?.name||''},${o.customer?.phone||''},"${(o.items||[]).map(i=>i.name).join('; ')}",${o.total||0},${o.status||''},${new Date(o.timestamp||Date.now()).toLocaleDateString()}`))
+    .join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='tempura_orders.csv'; a.click();
+}
+
+// ── MENU EDITOR ───────────────────────────────────────────────
+let localMenu=[...MENU_DATA];
+function renderMenuTable(){
+  document.getElementById('menu-table-body').innerHTML=localMenu.map((item,i)=>`
+    <tr>
+      <td><img src="${item.image}" style="width:44px;height:44px;border-radius:8px;object-fit:cover"/></td>
+      <td>${item.name}</td>
+      <td><span class="sbadge sb-accepted">${item.cat}</span></td>
+      <td style="font-family:'Bebas Neue',cursive;font-size:18px;color:var(--yellow)">Rs.${item.price}</td>
+      <td><input type="number" value="${item.price}" style="background:var(--black4);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:5px 10px;border-radius:6px;width:90px;font-size:13px" onchange="localMenu[${i}].price=Number(this.value)"/></td>
+      <td><button class="act-btn red" onclick="removeMenuItem(${i})">Remove</button></td>
+    </tr>
+  `).join('');
+}
+async function previewNewItem(inp){
+  const file=inp.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{ const prev=document.getElementById('new-item-preview'); prev.src=e.target.result; prev.style.display='block'; };
+  reader.readAsDataURL(file);
+  try{
+    Toast.show('Uploading to ImgBB...');
+    const url=await uploadToImgBB(file);
+    document.getElementById('new-item-img-url').value=url;
+    Toast.show('Image uploaded! ✅');
+  } catch(e){ Toast.show('Upload failed, using local preview'); }
+}
+async function addMenuItem(){
+  const name=document.getElementById('new-item-name').value.trim();
+  const price=Number(document.getElementById('new-item-price').value);
+  const cat=document.getElementById('new-item-cat').value;
+  const desc=document.getElementById('new-item-desc').value.trim();
+  const imgUrl=document.getElementById('new-item-img-url').value.trim()||'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80';
+  if(!name||!price){ Toast.show('Fill in name and price'); return; }
+  const item={id:'custom_'+Date.now(),name,price,cat,desc,image:imgUrl};
+  localMenu.push(item);
+  if(db) await db.ref('menu/'+item.id).set(item);
+  renderMenuTable();
+  Toast.show(`${name} added to menu! ✅`);
+  document.getElementById('new-item-name').value='';
+  document.getElementById('new-item-price').value='';
+  document.getElementById('new-item-desc').value='';
+  document.getElementById('new-item-img-url').value='';
+  document.getElementById('new-item-preview').style.display='none';
+}
+function removeMenuItem(i){
+  if(!confirm(`Remove "${localMenu[i].name}"?`)) return;
+  const id=localMenu[i].id;
+  localMenu.splice(i,1);
+  if(db) db.ref('menu/'+id).remove();
+  renderMenuTable();
+  Toast.show('Item removed');
+}
+async function syncMenuToFirebase(){
+  if(!db){ Toast.show('Firebase not connected'); return; }
+  const up={};
+  localMenu.forEach(item=>up['menu/'+item.id]=item);
+  await db.ref().update(up);
+  Toast.show(`Menu synced! ${localMenu.length} items ✅`);
+}
+
+// ── PROMO CODES ───────────────────────────────────────────────
+async function createPromo(){
+  const code=document.getElementById('promo-code-inp').value.trim().toUpperCase();
+  const disc=Number(document.getElementById('promo-disc-inp').value)/100;
+  const exp=document.getElementById('promo-exp-inp').value;
+  const limit=Number(document.getElementById('promo-limit-inp').value);
+  if(!code||!disc){ Toast.show('Fill in code and discount'); return; }
+  const data={code,discount:disc,expiresAt:exp?new Date(exp).getTime():0,usageLimit:limit,usedCount:0,createdAt:Date.now()};
+  if(db) await db.ref('promoCodes/'+code).set(data);
+  Toast.show(`Promo code ${code} created! ✅`);
+  document.getElementById('promo-code-inp').value='';
+  document.getElementById('promo-disc-inp').value='';
+}
+function renderPromoList(promos){
+  const list=document.getElementById('promo-list-wrap');
+  const expired=document.getElementById('expired-promos');
+  const all=Object.values(promos);
+  if(!all.length){ list.innerHTML='<p style="color:var(--gray);font-size:13px">No promo codes yet</p>'; expired.innerHTML='<p style="color:var(--gray);font-size:13px">None</p>'; return; }
+  const now=Date.now();
+  const active=all.filter(p=>!p.expiresAt||p.expiresAt>now);
+  const exp=all.filter(p=>p.expiresAt&&p.expiresAt<now);
+  list.innerHTML=active.map(p=>`<div class="promo-row-item">
+    <span class="promo-code-tag">${p.code}</span>
+    <span style="font-size:12px;color:var(--gray)">${Math.round(p.discount*100)}% off · ${p.usedCount||0}/${p.usageLimit||'∞'} uses</span>
+    <button class="del-promo" onclick="deletePromo('${p.code}')">✕</button>
+  </div>`).join('')||'<p style="color:var(--gray);font-size:13px">No active codes</p>';
+  expired.innerHTML=exp.length?exp.map(p=>`<div class="promo-row-item">
+    <span class="promo-code-tag" style="opacity:.5">${p.code}</span>
+    <span style="font-size:12px;color:#F44336">Expired</span>
+    <button class="save-btn" style="padding:4px 12px;font-size:11px" onclick="renewPromo('${p.code}')">Renew</button>
+  </div>`).join(''):'<p style="color:var(--gray);font-size:13px">No expired codes</p>';
+  let total=0; all.forEach(p=>total+=p.usedCount||0);
+  document.getElementById('stat-promos').textContent=total;
+}
+async function deletePromo(code){ if(db) await db.ref('promoCodes/'+code).remove(); }
+async function renewPromo(code){
+  if(!db) return;
+  const newExp=Date.now()+(30*24*60*60*1000);
+  await db.ref('promoCodes/'+code+'/expiresAt').set(newExp);
+  Toast.show(`${code} renewed for 30 days ✅`);
+}
+
+// ── RIDERS ────────────────────────────────────────────────────
+async function registerRider(){
+  const name=document.getElementById('r-name').value.trim();
+  const phone=document.getElementById('r-phone').value.trim();
+  const vehicle=document.getElementById('r-vehicle').value.trim();
+  if(!name||!phone){ Toast.show('Fill in name and phone'); return; }
+  const code=Math.random().toString(36).substring(2,8).toUpperCase();
+  const rider={name,phone,vehicle,code,status:'active',createdAt:Date.now()};
+  if(db) await db.ref('riders/'+code).set(rider);
+  document.getElementById('rider-code-box').textContent=code;
+  document.getElementById('new-code-card').style.display='block';
+  document.getElementById('r-name').value=''; document.getElementById('r-phone').value=''; document.getElementById('r-vehicle').value='';
+}
+function renderRidersTable(){
+  const riders=Object.values(allRiders);
+  document.getElementById('riders-body').innerHTML=riders.length
+    ?riders.map(r=>`<tr><td>${r.name}</td><td>${r.phone}</td><td>${r.vehicle||'—'}</td><td style="font-family:monospace;color:var(--yellow);letter-spacing:3px">${r.code}</td><td><span class="sbadge sb-accepted">${r.status||'active'}</span></td><td><button class="act-btn red" onclick="removeRider('${r.code}')">Remove</button></td></tr>`).join('')
+    :'<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:30px">No riders yet</td></tr>';
+}
+async function removeRider(code){ if(db&&confirm('Remove this rider?')) await db.ref('riders/'+code).remove(); }
+
+// ── BRANDING ──────────────────────────────────────────────────
+function liveColorPreview(color){
+  document.documentElement.style.setProperty('--yellow',color);
+}
+function loadBrandingFields(){}
+async function saveBranding(){
+  const b={name:document.getElementById('b-name').value,tagline:document.getElementById('b-tagline').value,phone:document.getElementById('b-phone').value,address:document.getElementById('b-address').value,logoEmoji:document.getElementById('b-logo').value};
+  if(db) await db.ref('settings/branding').update(b);
+  Toast.show('Brand identity saved ✅');
+}
+async function saveColors(){
+  const accent=document.getElementById('b-color').value;
+  const bg=document.getElementById('b-bg').value;
+  const card=document.getElementById('b-card').value;
+  if(db) await db.ref('settings/branding').update({accentColor:accent,accentColorGlow:accent+'4d',bgColor:bg,cardColor:card});
+  document.documentElement.style.setProperty('--yellow',accent);
+  document.documentElement.style.setProperty('--black',bg);
+  document.documentElement.style.setProperty('--black3',card);
+  Toast.show('Colors saved & applied to ALL pages ✅');
+}
+async function saveHero(){
+  const data={heroHeadline:document.getElementById('b-hero-h').value,heroSub:document.getElementById('b-hero-s').value,heroBadge:document.getElementById('b-hero-badge').value,heroImage:document.getElementById('b-hero-img').value};
+  if(db) await db.ref('settings/branding').update(data);
+  Toast.show('Hero saved ✅');
+}
+async function saveBanner(){
+  const data={announcementBar:document.getElementById('b-banner').value,bannerColor:document.getElementById('b-banner-color').value,showBanner:document.getElementById('b-banner-show').checked};
+  if(db) await db.ref('settings/branding').update(data);
+  Toast.show('Banner saved ✅');
+}
+async function saveOrderSettings(){
+  const data={waNumber:document.getElementById('b-wa').value,deliveryFee:Number(document.getElementById('b-del-fee').value),minOrder:Number(document.getElementById('b-min-order').value),eta:document.getElementById('b-eta').value};
+  if(db) await db.ref('settings').update(data);
+  Toast.show('Order settings saved ✅');
+}
+async function saveHours(){
+  const data={weekday:document.getElementById('b-hrs-weekday').value,saturday:document.getElementById('b-hrs-sat').value,sunday:document.getElementById('b-hrs-sun').value,isOpen:document.getElementById('b-is-open').checked};
+  if(db) await db.ref('settings/hours').set(data);
+  Toast.show('Hours saved ✅');
+}
+async function saveSocial(){
+  const data={instagram:document.getElementById('b-instagram').value,facebook:document.getElementById('b-facebook').value,tiktok:document.getElementById('b-tiktok').value};
+  if(db) await db.ref('settings/social').set(data);
+  Toast.show('Social links saved ✅');
+}
+async function saveSEO(){
+  const data={title:document.getElementById('b-seo-title').value,description:document.getElementById('b-seo-desc').value,mapsLink:document.getElementById('b-maps-link').value};
+  if(db) await db.ref('settings/seo').set(data);
+  Toast.show('SEO settings saved ✅');
+}
+async function saveTypography(){
+  const data={fontDisplay:document.getElementById('b-font').value,btnStyle:document.getElementById('b-btn-style').value,cardStyle:document.getElementById('b-card-style').value};
+  if(db) await db.ref('settings/branding').update(data);
+  Toast.show('Typography saved ✅');
+}
+
+// ── IMAGE UPLOAD ──────────────────────────────────────────────
+async function uploadAndSet(inp, urlFieldId, previewId){
+  const file=inp.files[0]; if(!file) return;
+  const preview=document.getElementById(previewId);
+  const reader=new FileReader();
+  reader.onload=e=>{ preview.src=e.target.result; preview.style.display='block'; };
+  reader.readAsDataURL(file);
+  try{
+    Toast.show('Uploading...');
+    const url=await uploadToImgBB(file);
+    document.getElementById(urlFieldId).value=url;
+    Toast.show('Uploaded! ✅');
+  }catch(e){ Toast.show('Upload failed'); }
+}
+async function uploadImgBBDev(inp){
+  const file=inp.files[0]; if(!file) return;
+  try{
+    Toast.show('Uploading to ImgBB...');
+    const url=await uploadToImgBB(file);
+    const result=document.getElementById('imgbb-result');
+    result.style.display='block';
+    document.getElementById('imgbb-url-result').value=url;
+    Toast.show('Uploaded successfully! ✅');
+  }catch(e){ Toast.show('ImgBB upload failed: '+e.message); }
+}
+
+// ── MAINTENANCE ───────────────────────────────────────────────
+async function saveMaintenance(){
+  const data={maintenanceMode:document.getElementById('maint-toggle-switch').checked,maintenanceMsg:document.getElementById('maint-msg').value};
+  if(db) await db.ref('settings/branding').update(data);
+  Toast.show('Maintenance settings saved ✅');
+}
+
+// Monthly checks
+const MONTHLY_TASKS=[
+  {id:'promo_renewal',label:'🎟️ Review & renew promo codes'},
+  {id:'price_review',label:'💰 Review menu prices'},
+  {id:'db_archive',label:'🗄️ Archive orders older than 30 days'},
+  {id:'ssl_check',label:'🔒 Verify SSL certificate & hosting'},
+  {id:'analytics_review',label:'📊 Review sales analytics'},
+  {id:'image_refresh',label:'🖼️ Update hero & product images'},
+  {id:'backup',label:'💾 Export full site backup'},
+  {id:'seo_check',label:'🔍 Review SEO & Google rankings'},
+];
+
+function initMonthlyChecks(){
+  const last=Number(localStorage.getItem('tp_monthly_last')||0);
+  const now=Date.now();
+  const daysSince=Math.floor((now-last)/(1000*60*60*24));
+  if(daysSince>=30&&last>0){
+    const alert=document.getElementById('monthly-alert');
+    alert.textContent=`⚠️ Monthly maintenance is due! (${daysSince} days since last check) — Go to Maintenance panel.`;
+    alert.classList.add('show');
+  }
+  renderMonthlyTasks();
+  renderPriceReview();
+  renderDBStatus();
+  renderAnalytics();
+}
+function renderMonthlyTasks(){
+  const done=JSON.parse(localStorage.getItem('tp_monthly_done')||'[]');
+  document.getElementById('monthly-tasks-list').innerHTML=MONTHLY_TASKS.map(t=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px">
+      <span style="color:${done.includes(t.id)?'#4CAF50':'var(--white)';}">${done.includes(t.id)?'✅ ':'○ '}${t.label}</span>
+      <button class="act-btn" onclick="markTask('${t.id}')" style="font-size:10px">Done</button>
+    </div>
+  `).join('');
+}
+function markTask(id){
+  const done=JSON.parse(localStorage.getItem('tp_monthly_done')||'[]');
+  if(!done.includes(id)) done.push(id);
+  localStorage.setItem('tp_monthly_done',JSON.stringify(done));
+  if(done.length===MONTHLY_TASKS.length) localStorage.setItem('tp_monthly_last',Date.now().toString());
+  renderMonthlyTasks();
+  Toast.show('Task marked done ✅');
+}
+function resetMonthlyTasks(){ localStorage.setItem('tp_monthly_done','[]'); localStorage.setItem('tp_monthly_last',Date.now().toString()); renderMonthlyTasks(); document.getElementById('monthly-alert').classList.remove('show'); Toast.show('Monthly timers reset ✅'); }
+function renderPriceReview(){
+  const last=Number(localStorage.getItem('tp_price_review')||0);
+  const days=Math.floor((Date.now()-last)/(1000*60*60*24));
+  document.getElementById('price-review-status').textContent=last?`Last reviewed: ${days} days ago${days>=30?' ⚠️ Review overdue!':' ✅'}` : 'Never reviewed — please review prices now!';
+}
+function ackPriceReview(){ localStorage.setItem('tp_price_review',Date.now().toString()); renderPriceReview(); Toast.show('Price review acknowledged ✅'); }
+function renderDBStatus(){
+  const total=Object.keys(allOrders).length;
+  const old=Object.values(allOrders).filter(o=>Date.now()-o.timestamp>30*24*60*60*1000).length;
+  document.getElementById('db-review-status').textContent=`Total orders: ${total} | Orders older than 30 days: ${old}${old>50?' ⚠️ Consider archiving':' ✅'}`;
+}
+async function archiveOldOrders(){
+  if(!db){ Toast.show('Firebase not connected'); return; }
+  const cutoff=Date.now()-30*24*60*60*1000;
+  const toArchive=Object.entries(allOrders).filter(([,o])=>o.timestamp<cutoff);
+  if(!toArchive.length){ Toast.show('No old orders to archive'); return; }
+  const updates={};
+  toArchive.forEach(([id,o])=>{ updates['archive/'+id]=o; updates['orders/'+id]=null; });
+  await db.ref().update(updates);
+  Toast.show(`Archived ${toArchive.length} old orders ✅`);
+}
+function renderAnalytics(){
+  const orders=Object.values(allOrders);
+  const itemCounts={};
+  orders.forEach(o=>(o.items||[]).forEach(i=>{ itemCounts[i.name]=(itemCounts[i.name]||0)+i.qty; }));
+  const top=Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('analytics-report').innerHTML=top.length?top.map(([n,c])=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span>${n}</span><span style="color:var(--yellow);font-family:'Bebas Neue',cursive;font-size:18px">${c}</span></div>`).join(''):'<p style="color:var(--gray);font-size:13px">No order data yet</p>';
+}
+
+// ── DEV SETTINGS ──────────────────────────────────────────────
+function savePasswords(){
+  const ap=document.getElementById('new-adm-pass').value;
+  const dp=document.getElementById('new-dev-pass').value;
+  if(ap) localStorage.setItem('tp_adm_pass',ap);
+  if(dp) localStorage.setItem('tp_dev_pass',dp);
+  Toast.show('Passwords updated ✅');
+}
+async function applyRebranding(){
+  const style={bgStyle:document.getElementById('dev-bg-style').value,cursor:document.getElementById('dev-cursor').value,animSpeed:document.getElementById('dev-anim-speed').value};
+  if(db) await db.ref('settings/style').set(style);
+  Toast.show('Rebranding applied ✅');
+}
+async function saveLoyalty(){
+  const data={enabled:document.getElementById('dev-loyalty').checked,pointsPerRupee:document.getElementById('dev-pts-rate').value,rupeePerPoint:document.getElementById('dev-pts-val').value};
+  if(db) await db.ref('settings/loyalty').set(data);
+  Toast.show('Loyalty program saved ✅');
+}
+async function saveDeliveryZones(){
+  const data={zone1:document.getElementById('dev-zone1').value,zone2:document.getElementById('dev-zone2').value,zone3:document.getElementById('dev-zone3').value,freeAbove:document.getElementById('dev-free-del').value};
+  if(db) await db.ref('settings/deliveryZones').set(data);
+  Toast.show('Delivery zones saved ✅');
+}
+function saveNotifSettings(){ localStorage.setItem('dev_alert_sound',document.getElementById('dev-alert-sound').checked); Toast.show('Notification settings saved ✅'); }
+function saveFirebaseConfig(){ Toast.show('Firebase config noted (redeploy to apply) ✅'); }
+async function confirmClearOrders(){ if(db&&confirm('Clear ALL orders? Irreversible!')) await db.ref('orders').remove().then(()=>Toast.show('Orders cleared')); }
+async function confirmResetSettings(){ if(db&&confirm('Reset all settings?')) await db.ref('settings').remove().then(()=>Toast.show('Settings reset')); }
+async function confirmClearRiders(){ if(db&&confirm('Remove all riders?')) await db.ref('riders').remove().then(()=>Toast.show('Riders removed')); }
+function exportFullBackup(){
+  const data={orders:allOrders,riders:allRiders,menu:localMenu,exportedAt:new Date().toISOString()};
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
+  a.download='tempura_backup_'+Date.now()+'.json'; a.click();
+  Toast.show('Backup exported ✅');
+}
+</script>
+</body>
+</html>

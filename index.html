@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#080808"/>
+<meta name="description" content="Tempura Potato — Lahore's finest burgers, wraps, shawarma & deals. Premium fast food. Order online for delivery or pickup at Milad Chock."/>
+<meta name="keywords" content="Tempura Potato,Lahore burger,best burger Lahore,Milad Chock,zinger burger,chicken wrap,shawarma Lahore"/>
+<meta property="og:title" content="Tempura Potato — Lahore's Finest Fast Food"/>
+<meta property="og:description" content="Premium burgers, wraps & legendary deals. Milad Chock, Lahore."/>
+<meta property="og:type" content="restaurant"/>
+<title>Tempura Potato — Lahore's Finest</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥔</text></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- CURSORS -->
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- PWA BANNER -->
+<div class="pwa-banner" id="pwa-banner">
+  <span>🎉 Install our app & get <strong>20% OFF</strong> your first order!</span>
+  <button class="pwa-install-btn" id="pwa-banner-btn">Install App</button>
+  <button class="pwa-close-btn" onclick="document.getElementById('pwa-banner').classList.remove('show')">✕</button>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a class="nav-logo" href="index.html">
+    <span class="nav-logo-icon" data-logo-emoji>🥔</span>
+    <div><span class="nav-brand" data-brand>TEMPURA</span><span class="nav-sub" data-tagline>POTATO</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="#menu">Menu</a>
+    <a href="#deals">Deals</a>
+    <a href="#about">About</a>
+    <a href="checkout.html" class="nav-order-btn">Order Now</a>
+  </div>
+  <div class="nav-ham" id="nav-ham"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mob-menu">
+  <a href="#menu" onclick="closeMob()">Menu</a>
+  <a href="#deals" onclick="closeMob()">Deals</a>
+  <a href="#about" onclick="closeMob()">About</a>
+  <a href="checkout.html" class="mob-order" onclick="closeMob()">Order Now</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-noise"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-radial"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🔥 Lahore's Fastest Growing Restaurant</div>
+    <h1 class="hero-title">
+      <span class="hero-t1">TASTE THE</span>
+      <span class="hero-t2" id="hero-headline">OBSESSION</span>
+    </h1>
+    <p class="hero-sub" id="hero-sub">Premium burgers. Legendary wraps. Deals that hit different.<br/>Main Bazar Nishat Colony, Milad Chock — Lahore</p>
+    <div class="hero-ctas">
+      <a href="#menu" class="btn btn-primary">Explore Menu</a>
+      <a href="checkout.html" class="btn btn-outline">Order Now →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-num">50+</div><div class="hstat-label">Menu Items</div></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><div class="hstat-num">4.9★</div><div class="hstat-label">Rating</div></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><div class="hstat-num">30 Min</div><div class="hstat-label">Delivery</div></div>
+    </div>
+  </div>
+  <div class="hero-img-col">
+    <div class="hero-img-wrap">
+      <img class="hero-food-img" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=85" alt="Tempura Potato Burger" loading="eager"/>
+      <div class="hero-img-ring"></div>
+      <div class="hero-img-ring2"></div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll to explore</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- FOOD IMAGE SCROLL SECTION -->
+<section class="food-scroll-section">
+  <div class="section-head reveal">
+    <div class="section-tag">WHAT WE SERVE</div>
+    <h2 class="section-title">Every Bite, a Story</h2>
+    <p class="section-sub">Real food. Real flavour. Made fresh every single time.</p>
+  </div>
+  <div class="food-row" id="food-row-1"></div>
+  <div class="food-row" id="food-row-2"></div>
+</section>
+
+<!-- PARALLAX BAND -->
+<section class="parallax-band">
+  <div class="parallax-band-bg" id="parallax-bg"></div>
+  <div class="parallax-band-content">
+    <div class="pb-tag reveal">CRAFTED IN LAHORE</div>
+    <h2 class="pb-title reveal">Food That Hits<br/><span>Different.</span></h2>
+    <p class="pb-sub reveal">We started with one obsession — make food so good people can't stop talking about it. Mission accomplished.</p>
+    <a href="checkout.html" class="btn btn-primary reveal">Order Now</a>
+  </div>
+</section>
+
+<!-- MENU -->
+<section class="menu-section" id="menu">
+  <div class="section-head reveal">
+    <div class="section-tag">THE MENU</div>
+    <h2 class="section-title">What We Do Best</h2>
+    <p class="section-sub">Every item made fresh. Every order made with love.</p>
+  </div>
+  <div class="menu-tabs" id="menu-tabs">
+    <button class="tab active" data-cat="all">All</button>
+    <button class="tab" data-cat="burgers">Burgers</button>
+    <button class="tab" data-cat="wraps">Wraps & Rolls</button>
+    <button class="tab" data-cat="shawarma">Shawarma</button>
+    <button class="tab" data-cat="sides">Sides</button>
+  </div>
+  <div class="menu-grid" id="menu-grid"></div>
+</section>
+
+<!-- DEALS -->
+<section class="deals-section" id="deals">
+  <div class="section-head reveal">
+    <div class="section-tag">🔥 HOT DEALS</div>
+    <h2 class="section-title">Value That Slaps</h2>
+    <p class="section-sub">More food. Less spend. All flavour.</p>
+  </div>
+  <div class="deals-grid" id="deals-grid"></div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <span>ZINGER BURGER</span><span class="marquee-dot">✦</span><span>MALA BOTI WRAP</span><span class="marquee-dot">✦</span><span>CHICKEN SHAWARMA</span><span class="marquee-dot">✦</span><span>GRILL BURGER</span><span class="marquee-dot">✦</span><span>TEMPURA POTATO</span><span class="marquee-dot">✦</span><span>SEEKH KABAB ROLL</span><span class="marquee-dot">✦</span><span>DHAMAKA ROLL</span><span class="marquee-dot">✦</span><span>LOADED FRIES</span><span class="marquee-dot">✦</span>
+    <span>ZINGER BURGER</span><span class="marquee-dot">✦</span><span>MALA BOTI WRAP</span><span class="marquee-dot">✦</span><span>CHICKEN SHAWARMA</span><span class="marquee-dot">✦</span><span>GRILL BURGER</span><span class="marquee-dot">✦</span><span>TEMPURA POTATO</span><span class="marquee-dot">✦</span><span>SEEKH KABAB ROLL</span><span class="marquee-dot">✦</span><span>DHAMAKA ROLL</span><span class="marquee-dot">✦</span><span>LOADED FRIES</span><span class="marquee-dot">✦</span>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+  <div class="section-head reveal">
+    <div class="section-tag">WHAT PEOPLE SAY</div>
+    <h2 class="section-title">The People Have Spoken</h2>
+    <p class="section-sub">Real customers. Real reactions. Real jaw drops.</p>
+  </div>
+  <div class="testi-track-wrap">
+    <div class="testi-track" id="testi-track"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section" id="about">
+  <div class="about-inner">
+    <div class="about-text reveal-l">
+      <div class="section-tag">OUR STORY</div>
+      <h2>Born in Lahore.<br/>Built on <em>Flavour.</em></h2>
+      <p>Tempura Potato started with a simple obsession — make food so good that people talk about it for days. No shortcuts. No compromises. Just premium ingredients, bold flavours, and prices that respect your pocket.</p>
+      <p>Located at Main Bazar Nishat Colony, Milad Chock — we spread like fire because of one reason: the food speaks for itself.</p>
+      <div class="about-pills">
+        <div class="pill">🔥 Made Fresh Daily</div>
+        <div class="pill">⚡ 30 Min Delivery</div>
+        <div class="pill">💰 Unbeatable Prices</div>
+        <div class="pill">📍 Milad Chock, Lahore</div>
+        <div class="pill">🌯 50+ Menu Items</div>
+      </div>
+    </div>
+    <div class="about-img-grid reveal-r">
+      <div class="about-img-cell" style="grid-row:span 2">
+        <img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&q=80" alt="Burger" loading="lazy"/>
+      </div>
+      <div class="about-img-cell">
+        <img src="https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80" alt="Shawarma" loading="lazy"/>
+      </div>
+      <div class="about-img-cell">
+        <img src="https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80" alt="Fries" loading="lazy"/>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT STRIP -->
+<div class="contact-strip reveal">
+  <div class="cs-side">
+    <div class="cs-ico">📞</div>
+    <div><div class="cs-label">Call to Order</div><div class="cs-val" id="site-phone">+92-3044888775</div></div>
+  </div>
+  <a href="checkout.html" class="btn btn-primary">Order Online</a>
+  <div class="cs-side">
+    <div class="cs-ico">📍</div>
+    <div><div class="cs-label">Find Us</div><div class="cs-val" id="site-address">Milad Chock, Lahore</div></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">
+        <span class="footer-logo-icon" data-logo-emoji>🥔</span>
+        <div><div class="footer-brand" data-brand>TEMPURA POTATO</div><div class="footer-tagline" data-tagline>Lahore's Finest</div></div>
+      </div>
+    </div>
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <a href="#menu">Menu</a>
+      <a href="#deals">Deals</a>
+      <a href="#about">About</a>
+      <a href="checkout.html">Order Now</a>
+    </div>
+    <div class="footer-links">
+      <h4>More</h4>
+      <a href="tracking.html">Track Order</a>
+      <a href="rider.html">Rider Portal</a>
+      <a href="#" id="pwa-footer-btn">Install App</a>
+    </div>
+    <div class="footer-links">
+      <h4>Contact</h4>
+      <a href="tel:+923044888775">+92-3044888775</a>
+      <a href="#">Main Bazar Nishat Colony</a>
+      <a href="#">Milad Chock, Lahore</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Tempura Potato. All rights reserved.</span>
+    <a href="admin.html" style="opacity:.05;font-size:9px;color:var(--gray2);text-decoration:none">·</a>
+    <span>Built with ❤️ for Lahore</span>
+  </div>
+</footer>
+
+<!-- DEVELOPER CREDIT SECTION -->
+<div class="dev-credit-strip">
+  <div class="dev-credit-inner">
+    <div class="dev-credit-left">
+      <div class="dev-credit-label">Website Designed & Developed by</div>
+      <div class="dev-credit-name">Shayan Ali</div>
+    </div>
+    <div class="dev-credit-divider"></div>
+    <div class="dev-credit-right">
+      <div class="dev-credit-contact-label">Get in touch</div>
+      <a class="dev-credit-phone" href="tel:03096447921">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        0309-6447921
+      </a>
+    </div>
+  </div>
+  <div class="dev-credit-glow"></div>
+</div>
+
+<!-- CART FLOAT -->
+<div class="cart-float" id="cart-float" onclick="location.href='checkout.html'">
+  <span class="cart-float-icon">🛒</span>
+  <span class="cart-float-count" id="cart-float-count">0</span>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <img class="modal-img" id="modal-img" src="" alt=""/>
+    <div class="modal-name" id="modal-name"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-price" id="modal-price"></div>
+    <div class="modal-qty">
+      <button class="qty-btn" onclick="modalQty(-1)">−</button>
+      <span class="qty-val" id="modal-qty-val">1</span>
+      <button class="qty-btn" onclick="modalQty(+1)">+</button>
+    </div>
+    <button class="btn btn-primary" style="width:100%;font-size:15px" onclick="confirmModal()">Add to Cart</button>
+  </div>
+</div>
+
+<!-- PWA POPUP -->
+<div class="pwa-popup-overlay" id="pwa-popup" onclick="if(event.target===this)closePWA()">
+  <div class="pwa-popup">
+    <button class="modal-close" onclick="closePWA()">✕</button>
+    <div class="pwa-popup-icon">🥔</div>
+    <div class="pwa-popup-brand">TEMPURA POTATO</div>
+    <div class="pwa-popup-title">Get the App</div>
+    <p class="pwa-popup-desc">Install our app for a faster experience and get <strong>20% OFF</strong> your first order!</p>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:10px" id="pwa-popup-btn">Install Free App</button>
+    <button class="pwa-skip" onclick="closePWA()">Maybe later</button>
+    <div class="pwa-manual" id="pwa-manual" style="display:none">
+      <strong>Install manually:</strong>
+      <ol>
+        <li>Tap the <strong>Share</strong> button (Safari: □↑ / Chrome: ⋮)</li>
+        <li>Tap <strong>"Add to Home Screen"</strong></li>
+        <li>Tap <strong>"Add"</strong> to confirm</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="core.js"></script>
+<script>
+// ── CURSOR ──────────────────────────────────────────────────
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px'});
+function animCursor(){rx+=(mx-rx)*.15;ry+=(my-ry)*.15;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animCursor)}
+animCursor();
+document.querySelectorAll('a,button,.menu-card,.deal-card,.tab').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('hover'));
+});
+
+// ── NAVBAR ───────────────────────────────────────────────────
+const nav = document.getElementById('navbar');
+const banner = document.getElementById('pwa-banner');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+  if(banner.classList.contains('show')) nav.style.top='42px';
+  else nav.style.top='';
+  parallaxUpdate();
+  revealUpdate();
+});
+document.getElementById('nav-ham').addEventListener('click',()=>document.getElementById('mob-menu').classList.toggle('open'));
+window.closeMob = ()=>document.getElementById('mob-menu').classList.remove('open');
+
+// ── PARALLAX ─────────────────────────────────────────────────
+const pbg = document.getElementById('parallax-bg');
+function parallaxUpdate(){
+  if(!pbg) return;
+  const sec = pbg.closest('.parallax-band');
+  const r = sec.getBoundingClientRect();
+  const p = -r.top / window.innerHeight;
+  pbg.style.transform = `translateY(${p*45}px)`;
+}
+
+// ── REVEAL ────────────────────────────────────────────────────
+function revealUpdate(){
+  document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>{
+    if(el.getBoundingClientRect().top < window.innerHeight - 80) el.classList.add('in');
+  });
+}
+revealUpdate();
+
+// ── FOOD SCROLL ROWS ─────────────────────────────────────────
+const foodImages = [
+  {src:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=320&q=80',name:'Grill Burger'},
+  {src:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=320&q=80',name:'Zinger Burger'},
+  {src:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=320&q=80',name:'Chicken Shawarma'},
+  {src:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=320&q=80',name:'Crispy Fries'},
+  {src:'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=320&q=80',name:'Loaded Fries'},
+  {src:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=320&q=80',name:'Paratha Roll'},
+  {src:'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=320&q=80',name:'Seekh Kabab'},
+  {src:'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=320&q=80',name:'Chicken Wrap'},
+  {src:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=320&q=80',name:'BBQ Platter'},
+  {src:'https://images.unsplash.com/photo-1598103442097-8b74394b95c1?w=320&q=80',name:'Grilled Chicken'},
+  {src:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=320&q=80',name:'Family Deal'},
+  {src:'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=320&q=80',name:'Patty Burger'},
+];
+function buildFoodRows(){
+  const makeCard=(img)=>`<div class="food-scroll-card"><img src="${img.src}" alt="${img.name}" loading="lazy"/><div class="food-scroll-card-label">${img.name}</div></div>`;
+  const doubled = [...foodImages,...foodImages];
+  document.getElementById('food-row-1').innerHTML = doubled.map(makeCard).join('');
+  document.getElementById('food-row-2').innerHTML = [...doubled].reverse().map(makeCard).join('');
+}
+buildFoodRows();
+
+// ── TESTIMONIALS ─────────────────────────────────────────────
+const testimonials = [
+  {name:'Ahmed Raza',loc:'DHA, Lahore',text:'Bhai wallah — the zinger burger is straight up the best I\'ve had in Lahore. Better than the big chains and half the price!',avatar:'😋',rating:5},
+  {name:'Sara Malik',loc:'Model Town, Lahore',text:'Ordered the family deal and everyone was blown away. The loaded fries are INSANE. Already ordering again tonight.',avatar:'🤩',rating:5},
+  {name:'Hamza Khan',loc:'Gulberg, Lahore',text:'The mala boti wrap is a masterpiece. No cap. I drive 20 minutes just for this.',avatar:'🔥',rating:5},
+  {name:'Fatima Ali',loc:'Johar Town, Lahore',text:'Delivery was fast, food was hot, and the grill shawarma was perfect. 10/10 will recommend.',avatar:'⭐',rating:5},
+  {name:'Usman Tariq',loc:'Bahria Town, Lahore',text:'Malai boti paratha roll = game over for every other restaurant. My office literally orders this twice a week.',avatar:'👌',rating:5},
+  {name:'Zara Hussain',loc:'Wapda Town, Lahore',text:'The dhamaka roll literally lives up to the name. My jaw dropped at the size and then again at the flavour.',avatar:'😍',rating:5},
+  {name:'Bilal Chaudhry',loc:'Shadman, Lahore',text:'Best value fast food in the city. Seekh kabab paratha roll for 250 rupees? Are you kidding me? That\'s a steal.',avatar:'💯',rating:5},
+  {name:'Nadia Shafi',loc:'Faisal Town, Lahore',text:'The website made ordering so easy and the order tracking is legit. Food was exactly as expected — premium.',avatar:'✨',rating:5},
+];
+function buildTestis(){
+  const card=(t)=>`<div class="testi-card">
+    <div class="testi-stars">${'★'.repeat(t.rating)}</div>
+    <div class="testi-text">"${t.text}"</div>
+    <div class="testi-author">
+      <div class="testi-avatar">${t.avatar}</div>
+      <div><div class="testi-name">${t.name}</div><div class="testi-loc">📍 ${t.loc}</div></div>
+    </div>
+  </div>`;
+  const doubled = [...testimonials,...testimonials];
+  document.getElementById('testi-track').innerHTML = doubled.map(card).join('');
+}
+buildTestis();
+
+// ── MENU RENDER ───────────────────────────────────────────────
+let currentCat = 'all';
+function renderMenu(cat){
+  currentCat = cat;
+  const items = cat==='all'
+    ? MENU_DATA.filter(i=>i.cat!=='deals')
+    : MENU_DATA.filter(i=>i.cat===cat);
+  document.getElementById('menu-grid').innerHTML = items.map(item=>`
+    <div class="menu-card reveal" onclick="openModal('${item.id}')">
+      <div class="menu-card-img">
+        <img src="${item.image}" alt="${item.name}" loading="lazy"/>
+        <div class="menu-card-img-overlay"></div>
+      </div>
+      <div class="menu-card-body">
+        <div class="menu-card-name">${item.name}</div>
+        <div class="menu-card-desc">${item.desc}</div>
+        <div class="menu-card-foot">
+          <div class="menu-card-price">Rs. ${item.price}</div>
+          <button class="add-btn" onclick="event.stopPropagation();Cart.add(MENU_DATA.find(x=>x.id==='${item.id}'))">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  revealUpdate();
+}
+function renderDeals(){
+  document.getElementById('deals-grid').innerHTML = MENU_DATA.filter(i=>i.cat==='deals').map(d=>`
+    <div class="deal-card reveal" onclick="openModal('${d.id}')">
+      <div class="deal-badge">DEAL</div>
+      <div class="deal-img"><img src="${d.image}" alt="${d.name}" loading="lazy"/></div>
+      <div class="deal-body">
+        <div class="deal-name">${d.name}</div>
+        <div class="deal-includes">${(d.includes||[]).map(x=>`✦ ${x}`).join('<br/>')}</div>
+        <div class="deal-foot">
+          <div class="deal-price">Rs. ${d.price}</div>
+          <button class="btn btn-primary" style="padding:10px 20px;font-size:13px" onclick="event.stopPropagation();Cart.add(MENU_DATA.find(x=>x.id==='${d.id}'))">Add</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  revealUpdate();
+}
+// Tabs
+document.getElementById('menu-tabs').addEventListener('click',e=>{
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  renderMenu(tab.dataset.cat);
+});
+renderMenu('all');
+renderDeals();
+
+// ── MODAL ────────────────────────────────────────────────────
+let modalItemId=null, modalQtyVal=1;
+function openModal(id){
+  const item = MENU_DATA.find(x=>x.id===id);
+  if(!item) return;
+  modalItemId=id; modalQtyVal=1;
+  document.getElementById('modal-img').src = item.image;
+  document.getElementById('modal-name').textContent = item.name;
+  document.getElementById('modal-desc').textContent = item.desc;
+  document.getElementById('modal-price').textContent = `Rs. ${item.price}`;
+  document.getElementById('modal-qty-val').textContent = 1;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+function modalQty(d){
+  modalQtyVal = Math.max(1,modalQtyVal+d);
+  document.getElementById('modal-qty-val').textContent = modalQtyVal;
+  const item = MENU_DATA.find(x=>x.id===modalItemId);
+  if(item) document.getElementById('modal-price').textContent = `Rs. ${item.price * modalQtyVal}`;
+}
+function confirmModal(){
+  const item = MENU_DATA.find(x=>x.id===modalItemId);
+  if(item){ Cart.add(item,modalQtyVal); closeModal(); }
+}
+
+// ── PWA ──────────────────────────────────────────────────────
+let deferredPWA=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPWA=e;
+  setTimeout(()=>document.getElementById('pwa-banner').classList.add('show'),3000);
+  if(!localStorage.getItem('tp_pwa_shown')){
+    setTimeout(()=>{ document.getElementById('pwa-popup').classList.add('open'); localStorage.setItem('tp_pwa_shown','1'); },9000);
+  }
+});
+async function triggerPWA(){
+  if(deferredPWA){
+    deferredPWA.prompt();
+    const {outcome}=await deferredPWA.userChoice;
+    if(outcome==='accepted'){ Toast.show('App installed! 20% off applied 🎉'); closePWA(); document.getElementById('pwa-banner').classList.remove('show'); }
+    deferredPWA=null;
+  } else {
+    document.getElementById('pwa-manual').style.display='block';
+    document.getElementById('pwa-popup').classList.add('open');
+  }
+}
+window.closePWA=()=>document.getElementById('pwa-popup').classList.remove('open');
+document.getElementById('pwa-banner-btn').addEventListener('click',triggerPWA);
+document.getElementById('pwa-popup-btn').addEventListener('click',triggerPWA);
+document.getElementById('pwa-footer-btn').addEventListener('click',e=>{e.preventDefault();triggerPWA();});
+
+// Service Worker
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ── SETTINGS LOAD ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  loadSiteSettings();
+  // Load dynamic phone/address
+  const db = getDB();
+  if(db){
+    db.ref('settings/branding').once('value').then(s=>{
+      const b=s.val()||{};
+      if(b.phone) document.getElementById('site-phone').textContent=b.phone;
+      if(b.address) document.getElementById('site-address').textContent=b.address;
+    }).catch(()=>{});
+  }
+});
+</script>
+</body>
+</html>
