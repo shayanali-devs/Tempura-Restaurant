@@ -2,309 +2,338 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="theme-color" content="#080808"/>
+<meta name="theme-color" content="#0a0a0a"/>
 <title>Checkout — Tempura Potato</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
+<style>
+.co-wrap{max-width:1100px;margin:0 auto;padding:120px 24px 80px;display:grid;grid-template-columns:1fr 400px;gap:32px;}
+@media(max-width:900px){.co-wrap{grid-template-columns:1fr;padding-top:100px;}}
+.co-panel{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:30px;margin-bottom:20px;}
+.co-panel h2{font-family:var(--font-display);font-size:26px;color:var(--white);letter-spacing:1px;margin-bottom:22px;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:14px;}
+.fg{margin-bottom:18px;}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.fi{width:100%;background:var(--black4);border:1px solid rgba(255,255,255,0.1);color:var(--white);padding:13px 16px;border-radius:var(--radius-sm);font-size:15px;font-family:'Barlow',sans-serif;outline:none;transition:border-color 0.3s;}
+.fi:focus{border-color:var(--yellow);}
+.fi::placeholder{color:var(--gray2);}
+textarea.fi{resize:vertical;min-height:80px;}
+.del-toggle{display:flex;gap:10px;margin-bottom:6px;}
+.del-opt{flex:1;padding:13px;background:var(--black4);border:2px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);text-align:center;cursor:pointer;font-weight:700;font-size:15px;transition:var(--transition);color:var(--white);}
+.del-opt.active{border-color:var(--yellow);color:var(--yellow);background:rgba(245,200,66,0.07);}
+.loc-btn{width:100%;margin-top:8px;padding:12px;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.25);color:var(--yellow);border-radius:var(--radius-sm);font-weight:700;font-size:14px;cursor:pointer;transition:var(--transition);}
+.loc-btn:hover{background:rgba(245,200,66,0.15);}
+.co-summary{background:var(--black3);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius);padding:30px;position:sticky;top:90px;}
+.co-summary h2{font-family:var(--font-display);font-size:26px;color:var(--white);letter-spacing:1px;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:14px;}
+.cart-list{max-height:320px;overflow-y:auto;margin-bottom:18px;}
+.ci{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.ci-img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.ci-info{flex:1;min-width:0;}
+.ci-name{font-size:14px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-qty-ctrl{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.ci-qty-btn{width:22px;height:22px;background:var(--black5);border:1px solid rgba(255,255,255,0.1);color:var(--white);border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
+.ci-qty-btn:hover{background:var(--yellow);color:var(--black);}
+.ci-qty-num{font-size:13px;color:var(--gray);min-width:16px;text-align:center;}
+.ci-price{font-family:var(--font-display);font-size:20px;color:var(--yellow);white-space:nowrap;}
+.ci-del{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;}
+.ci-del:hover{color:#ff4444;}
+.empty-cart{text-align:center;padding:36px 20px;}
+.empty-cart-icon{font-size:48px;margin-bottom:12px;}
+.empty-cart p{color:var(--gray);margin-bottom:16px;}
+.totals-row{display:flex;justify-content:space-between;font-size:14px;color:var(--gray);margin-bottom:8px;}
+.totals-row.grand{font-size:17px;font-weight:700;color:var(--white);border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;margin-top:6px;}
+.totals-row.grand span:last-child{color:var(--yellow);font-family:var(--font-display);font-size:24px;}
+.totals-row.discount{color:#4CAF50;}
+.promo-row{display:flex;gap:8px;margin-bottom:16px;}
+.promo-row input{flex:1;font-size:13px;padding:10px 12px;}
+.promo-apply{padding:0 18px;background:var(--yellow);color:var(--black);border:none;border-radius:var(--radius-sm);font-weight:700;cursor:pointer;font-size:13px;}
+.co-btns{display:flex;flex-direction:column;gap:11px;}
+.btn-wa{display:flex;align-items:center;justify-content:center;gap:10px;background:#25D366;color:#fff;padding:15px;border-radius:30px;font-weight:700;font-size:16px;border:none;cursor:pointer;width:100%;transition:var(--transition);}
+.btn-wa:hover{background:#128C7E;transform:translateY(-2px);}
+.btn-place{width:100%;font-size:16px;padding:15px;}
+.auth-box{background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:var(--radius-sm);padding:18px;margin-bottom:20px;text-align:center;}
+.auth-box p{font-size:14px;color:var(--gray);margin-bottom:12px;}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#333;padding:11px 18px;border-radius:25px;font-weight:700;font-size:14px;border:none;cursor:pointer;width:100%;transition:var(--transition);}
+.btn-google:hover{transform:scale(1.02);}
+.user-bar{background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.18);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.user-bar-name{font-size:14px;color:var(--white);font-weight:600;}
+.btn-signout{background:none;border:none;color:var(--gray);font-size:12px;cursor:pointer;text-decoration:underline;}
+</style>
 </head>
 <body>
-
 <nav class="navbar scrolled" id="navbar">
-  <a class="nav-logo" href="index.html">
-    <span class="nav-logo-icon" data-logo-emoji>🥔</span>
-    <div><span class="nav-brand" data-brand>TEMPURA</span><span class="nav-sub" data-tagline>POTATO</span></div>
-  </a>
-  <div class="nav-links">
-    <a href="index.html#menu">Menu</a>
-    <a href="index.html#deals">Deals</a>
+  <div class="nav-logo" onclick="window.location='index.html'" style="cursor:pointer">
+    <div class="nav-logo-icon tp-logo-emoji">🥔</div>
+    <div class="nav-logo-text"><span class="nav-brand tp-brand-name">TEMPURA</span><span class="nav-sub">POTATO</span></div>
   </div>
-  <div class="nav-ham" id="nav-ham"><span></span><span></span><span></span></div>
+  <div class="nav-links"><a href="index.html#menu">Menu</a><a href="index.html#deals">Deals</a></div>
+  <div class="nav-hamburger" id="nav-hamburger"><span></span><span></span><span></span></div>
 </nav>
-<div class="mob-menu" id="mob-menu">
-  <a href="index.html" onclick="document.getElementById('mob-menu').classList.remove('open')">Home</a>
-  <a href="index.html#menu" onclick="document.getElementById('mob-menu').classList.remove('open')">Menu</a>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html" onclick="closeMobileMenu()">Home</a>
+  <a href="index.html#menu" onclick="closeMobileMenu()">Menu</a>
 </div>
 
-<div style="background:var(--black);min-height:100vh">
-  <div style="background:var(--black2);padding:110px 28px 40px;text-align:center;border-bottom:1px solid rgba(255,255,255,.05)">
+<div style="background:var(--black);min-height:100vh;">
+  <div style="background:var(--black2);border-bottom:1px solid rgba(255,255,255,0.06);padding:110px 24px 40px;text-align:center;">
     <div class="section-tag">YOUR ORDER</div>
-    <h1 style="font-family:'Bebas Neue',cursive;font-size:clamp(40px,7vw,72px);color:var(--white)">Check<span style="color:var(--yellow)">out</span></h1>
+    <h1 style="font-family:var(--font-display);font-size:clamp(40px,7vw,80px);color:var(--white);">Check<span style="color:var(--yellow)">out</span></h1>
   </div>
 
-  <div class="checkout-wrap">
-    <!-- LEFT -->
+  <div class="co-wrap">
     <div>
-      <div id="auth-block" style="margin-bottom:20px"></div>
+      <!-- AUTH -->
+      <div id="auth-section"></div>
 
       <!-- DELIVERY TYPE -->
-      <div class="panel" style="margin-bottom:18px">
-        <h2>Order Type</h2>
+      <div class="co-panel">
+        <h2>Delivery Type</h2>
         <div class="del-toggle">
-          <div class="del-opt active" id="opt-del" onclick="setDel('delivery')">🛵 Delivery</div>
-          <div class="del-opt" id="opt-pick" onclick="setDel('pickup')">🏃 Pickup</div>
+          <div class="del-opt active" id="opt-del" onclick="setDelivery('delivery')">🛵 Delivery</div>
+          <div class="del-opt" id="opt-pick" onclick="setDelivery('pickup')">🏃 Pickup</div>
         </div>
       </div>
 
       <!-- DETAILS -->
-      <div class="panel">
+      <div class="co-panel">
         <h2>Your Details</h2>
-        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="inp-name" placeholder="Your name"/></div>
-        <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" id="inp-phone" type="tel" placeholder="+92 3xx xxxxxxx"/></div>
+        <div class="fg"><label class="fl">Full Name</label><input class="fi" id="inp-name" placeholder="Your name"/></div>
+        <div class="fg"><label class="fl">Phone Number</label><input class="fi" id="inp-phone" type="tel" placeholder="+92 3xx xxxxxxx"/></div>
         <div id="del-fields">
-          <div class="form-group"><label class="form-label">Delivery Address</label><textarea class="form-input" id="inp-addr" rows="3" placeholder="Full address, area, landmark..."></textarea></div>
-          <div class="form-group">
-            <label class="form-label">Live Location (optional)</label>
-            <button class="loc-btn" onclick="getGPS()">📍 Share My Live Location</button>
-            <p id="gps-status" style="font-size:12px;color:var(--gray);margin-top:6px"></p>
+          <div class="fg"><label class="fl">Delivery Address</label><textarea class="fi" id="inp-addr" placeholder="Full address, area, landmark..."></textarea></div>
+          <div class="fg">
+            <label class="fl">Live Location (optional)</label>
+            <button class="loc-btn" onclick="getLocation()">📍 Share My Live Location</button>
+            <p id="loc-status" style="font-size:12px;color:var(--gray);margin-top:8px;"></p>
           </div>
         </div>
-        <div class="form-group"><label class="form-label">Special Instructions</label><textarea class="form-input" id="inp-notes" rows="2" placeholder="Extra spicy? No onions? Tell us!"></textarea></div>
+        <div class="fg"><label class="fl">Special Instructions</label><textarea class="fi" id="inp-notes" placeholder="Extra spicy? No onions?"></textarea></div>
       </div>
     </div>
 
-    <!-- RIGHT: ORDER SUMMARY -->
-    <div>
-      <div class="panel" style="position:sticky;top:80px">
-        <h2>Order Summary</h2>
-        <div id="user-bar-slot"></div>
-        <div class="cart-list" id="cart-list"></div>
-        <div class="promo-row">
-          <input class="form-input" id="promo-inp" placeholder="Promo code"/>
-          <button class="promo-apply" onclick="applyPromo()">Apply</button>
-        </div>
-        <div id="totals-block"></div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
-          <button class="btn btn-primary" style="width:100%;font-size:15px;padding:15px" onclick="placeOrder()">Place Order 🎉</button>
-          <button class="btn-wa" onclick="orderWA()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Order on WhatsApp
-          </button>
-        </div>
-        <p style="text-align:center;font-size:11px;color:var(--gray2);margin-top:14px">Cash on delivery. No hidden charges.</p>
+    <!-- ORDER SUMMARY -->
+    <div class="co-summary">
+      <h2>Order Summary</h2>
+      <div id="user-bar-slot"></div>
+      <div class="cart-list" id="cart-list"></div>
+      <div class="promo-row">
+        <input class="fi" id="promo-inp" placeholder="Promo code (APP20, FIRSTORDER)" style="font-size:13px;padding:9px 12px;"/>
+        <button class="promo-apply" onclick="applyPromo()">Apply</button>
       </div>
+      <div id="totals-block">
+        <div class="totals-row"><span>Subtotal</span><span id="sub-total">Rs. 0</span></div>
+        <div class="totals-row discount" id="disc-row" style="display:none"><span>Discount</span><span id="disc-amt">-Rs. 0</span></div>
+        <div class="totals-row"><span>Delivery Fee</span><span id="del-fee">Rs. 60</span></div>
+        <div class="totals-row grand"><span>Total</span><span id="grand-total">Rs. 0</span></div>
+      </div>
+      <div class="co-btns" style="margin-top:20px;">
+        <button class="btn-primary btn-place" onclick="placeOrder()">Place Order 🎉</button>
+        <button class="btn-wa" onclick="orderWhatsApp()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Order on WhatsApp
+        </button>
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--gray2);margin-top:14px;">Cash on delivery · No hidden charges</p>
     </div>
   </div>
 </div>
-
-<!-- FOOTER -->
-<footer class="footer" style="margin-top:0;padding-top:32px">
-  <div class="footer-bottom">
-    <span>© 2026 Tempura Potato. All rights reserved.</span>
-    <span>Built with ❤️ for Lahore</span>
-  </div>
-</footer>
-<div class="dev-credit-strip">
-  <div class="dev-credit-glow"></div>
-  <div class="dev-credit-inner">
-    <div class="dev-credit-left">
-      <div class="dev-credit-label">Website Designed &amp; Developed by</div>
-      <div class="dev-credit-name">Shayan Ali</div>
-    </div>
-    <div class="dev-credit-divider"></div>
-    <div class="dev-credit-right">
-      <div class="dev-credit-contact-label">Get in touch</div>
-      <a class="dev-credit-phone" href="tel:03096447921">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
-        0309-6447921
-      </a>
-    </div>
-  </div>
-</div>
+<footer class="footer"><div class="footer-bottom" style="justify-content:center;"><span>© 2026 Tempura Potato · Milad Chock, Lahore</span></div></footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="core.js"></script>
+<script src="app.js"></script>
 <script>
-// ── INIT ─────────────────────────────────────────────────────
-document.getElementById('nav-ham').addEventListener('click',()=>document.getElementById('mob-menu').classList.toggle('open'));
-loadSiteSettings();
+// ─── CHECKOUT PAGE ──────────────────────────────────────────
+// CRITICAL: Use TP.getCart() at render time, never cache cart at page load
+const WA_NUM = '923044888775';
+const DEL_FEE = 60;
+let deliveryType = 'delivery';
+let currentUser = null;
+let discountRate = 0;
+let userLocation = null;
 
-let delType='delivery', discount=0, userGPS=null, currentUser=null, waNumber='923044888775', deliveryFee=60;
+// NAV
+document.getElementById('nav-hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
 
-// Load settings from Firebase
-const db=getDB();
-if(db){
-  db.ref('settings').once('value').then(s=>{
-    const v=s.val()||{};
-    if(v.waNumber) waNumber=v.waNumber;
-    if(v.deliveryFee) deliveryFee=Number(v.deliveryFee);
-    renderTotals();
-  }).catch(()=>{});
-}
-
-// ── AUTH ──────────────────────────────────────────────────────
-const auth = getAuth();
-if(auth){
-  auth.onAuthStateChanged(user=>{
-    currentUser=user;
+// AUTH
+if (auth) {
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
     renderAuth();
-    if(user && !discount) { discount=0.20; renderTotals(); Toast.show('20% discount applied! 🎉'); }
+    renderCartUI();
   });
+} else {
+  renderCartUI();
 }
 
-function renderAuth(){
-  const authBlock = document.getElementById('auth-block');
+function renderAuth() {
+  const section = document.getElementById('auth-section');
   const userBarSlot = document.getElementById('user-bar-slot');
-  if(currentUser){
-    authBlock.innerHTML='';
-    userBarSlot.innerHTML=`<div class="user-bar">
-      <div class="user-bar-info"><span>👤</span><span>${currentUser.displayName||currentUser.email}</span></div>
-      <button class="btn-signout" onclick="doSignOut()">Sign out</button>
-    </div>`;
-    if(currentUser.displayName) document.getElementById('inp-name').value=currentUser.displayName;
+  if (currentUser) {
+    section.innerHTML = '';
+    userBarSlot.innerHTML = `<div class="user-bar"><span class="user-bar-name">👤 ${currentUser.displayName || currentUser.email}</span><button class="btn-signout" onclick="doSignOut()">Sign out</button></div>`;
+    const ni = document.getElementById('inp-name');
+    if (ni && !ni.value && currentUser.displayName) ni.value = currentUser.displayName;
   } else {
-    userBarSlot.innerHTML='';
-    authBlock.innerHTML=`<div class="panel"><div class="auth-prompt">
-      <p>🎉 Sign in with Google to get <strong>20% OFF</strong> your first order!</p>
-      <button class="btn-google" onclick="doSignIn()">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%234285F4' d='M46.5 24.4c0-1.6-.1-3.1-.4-4.6H24v8.7h12.7c-.5 2.8-2.2 5.2-4.7 6.8v5.7h7.6c4.5-4.1 7-10.2 7-16.6z'/%3E%3Cpath fill='%2334A853' d='M24 47c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.7c-2.2 1.4-4.9 2.3-8.3 2.3-6.4 0-11.8-4.3-13.7-10.1H2.4v5.9C6.4 41.7 14.6 47 24 47z'/%3E%3Cpath fill='%23FBBC05' d='M10.3 28.7A13.8 13.8 0 019.6 24c0-1.6.3-3.2.7-4.7v-5.9H2.4A23 23 0 000 24c0 3.8.9 7.4 2.4 10.6l7.9-5.9z'/%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.6 0 6.8 1.2 9.3 3.6l7-7C36 2.2 30.5 0 24 0 14.6 0 6.4 5.3 2.4 13.4l7.9 5.9C12.2 13.8 17.6 9.5 24 9.5z'/%3E%3C/svg%3E" width="20" alt="G"/>
-        Continue with Google
-      </button>
-    </div></div>`;
+    userBarSlot.innerHTML = '';
+    section.innerHTML = `<div class="co-panel"><div class="auth-box"><p>🎉 Sign in with Google to get <strong>20% OFF</strong> your first order!</p><button class="btn-google" onclick="doSignIn()"><img src="https://developers.google.com/identity/images/g-logo.png" width="18" alt="G"/> Continue with Google</button></div></div>`;
   }
 }
-async function doSignIn(){
-  try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ Toast.show('Sign in failed'); }
-}
-async function doSignOut(){ await auth.signOut(); discount=0; renderTotals(); }
 
-// ── CART RENDER ───────────────────────────────────────────────
-// NOTE: reads FRESH from localStorage every time — no caching bug
-function renderCart(){
-  const items = Cart.get();  // Always reads fresh from localStorage
-  const list = document.getElementById('cart-list');
-  if(!items.length){
-    list.innerHTML=`<div class="empty-cart">
-      <div class="empty-cart-icon">🛒</div>
-      <p style="margin-bottom:16px">Your cart is empty</p>
-      <a href="index.html#menu" class="btn btn-primary" style="font-size:13px;padding:10px 22px">Browse Menu</a>
-    </div>`;
-    renderTotals(); return;
-  }
-  list.innerHTML=items.map(item=>`
-    <div class="ci">
-      <img class="ci-img" src="${item.image||'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&q=60'}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&q=60'"/>
-      <div class="ci-info">
-        <div class="ci-name">${item.name}</div>
-        <div class="ci-qty-row">
-          <button class="ci-qty-btn" onclick="Cart.updateQty('${item.id}',${item.qty-1})">−</button>
-          <span class="ci-qty-num">${item.qty}</span>
-          <button class="ci-qty-btn" onclick="Cart.updateQty('${item.id}',${item.qty+1})">+</button>
-        </div>
-      </div>
-      <div class="ci-price">Rs.${item.price*item.qty}</div>
-      <button class="ci-del" onclick="Cart.remove('${item.id}')">✕</button>
-    </div>
-  `).join('');
-  renderTotals();
+async function doSignIn() {
+  if (!auth) return;
+  try {
+    const p = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(p);
+    discountRate = 0.20;
+    TP.showToast('Signed in! 20% discount applied 🎉');
+    renderCartUI();
+  } catch(e) { TP.showToast('Sign in failed. Try again.','error'); }
+}
+async function doSignOut() {
+  await auth.signOut();
+  discountRate = 0;
+  renderCartUI();
 }
 
-function renderTotals(){
-  const items=Cart.get();
-  const sub=items.reduce((s,c)=>s+c.price*c.qty,0);
-  const disc=Math.round(sub*discount);
-  const fee=delType==='delivery'?deliveryFee:0;
-  const total=sub-disc+fee;
-  document.getElementById('totals-block').innerHTML=`
-    <div class="totals-row"><span>Subtotal</span><span>Rs. ${sub}</span></div>
-    ${disc?`<div class="totals-row discount"><span>Discount (${Math.round(discount*100)}%)</span><span>−Rs. ${disc}</span></div>`:''}
-    <div class="totals-row"><span>Delivery</span><span>${fee?`Rs. ${fee}`:'Free'}</span></div>
-    <div class="totals-row grand"><span>Total</span><span>Rs. ${total}</span></div>
-  `;
-}
-
-// Re-render whenever cart changes
-Cart.onChange(renderCart);
-
-// ── DELIVERY TOGGLE ───────────────────────────────────────────
-window.setDel=function(type){
-  delType=type;
-  document.getElementById('opt-del').classList.toggle('active',type==='delivery');
-  document.getElementById('opt-pick').classList.toggle('active',type==='pickup');
-  document.getElementById('del-fields').style.display=type==='delivery'?'':'none';
-  renderTotals();
+// DELIVERY TOGGLE
+window.setDelivery = function(type) {
+  deliveryType = type;
+  document.getElementById('opt-del').classList.toggle('active', type==='delivery');
+  document.getElementById('opt-pick').classList.toggle('active', type==='pickup');
+  document.getElementById('del-fields').style.display = type==='delivery' ? '' : 'none';
+  renderCartUI();
 };
 
-// ── GPS ───────────────────────────────────────────────────────
-window.getGPS=function(){
-  const s=document.getElementById('gps-status');
-  s.textContent='Getting location...';
+// CART RENDER — reads fresh from localStorage every time
+function renderCartUI() {
+  const cart = TP.getCart(); // ALWAYS fresh read
+  const list = document.getElementById('cart-list');
+  if (!cart.length) {
+    list.innerHTML = `<div class="empty-cart"><div class="empty-cart-icon">🛒</div><p>Your cart is empty</p><a href="index.html#menu" class="btn-primary" style="display:inline-block;margin-top:12px">Browse Menu</a></div>`;
+    document.getElementById('sub-total').textContent = 'Rs. 0';
+    document.getElementById('grand-total').textContent = 'Rs. 0';
+    document.getElementById('del-fee').textContent = deliveryType==='delivery' ? 'Rs. '+DEL_FEE : 'Free';
+    return;
+  }
+  list.innerHTML = cart.map(item => `
+    <div class="ci">
+      <img class="ci-img" src="${item.img||'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&q=60'}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&q=60'"/>
+      <div class="ci-info">
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-qty-ctrl">
+          <button class="ci-qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+          <span class="ci-qty-num">${item.qty}</span>
+          <button class="ci-qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+        </div>
+      </div>
+      <div class="ci-price">Rs.${item.price * item.qty}</div>
+      <button class="ci-del" onclick="removeItem('${item.id}')">✕</button>
+    </div>`).join('');
+  calcTotals(cart);
+}
+
+function calcTotals(cart) {
+  const sub = cart.reduce((s,c) => s + c.price*c.qty, 0);
+  const disc = Math.round(sub * discountRate);
+  const fee = deliveryType==='delivery' ? DEL_FEE : 0;
+  const grand = sub - disc + fee;
+  document.getElementById('sub-total').textContent = 'Rs. '+sub;
+  document.getElementById('del-fee').textContent = fee ? 'Rs. '+fee : 'Free';
+  document.getElementById('grand-total').textContent = 'Rs. '+grand;
+  const dr = document.getElementById('disc-row');
+  if (disc) { dr.style.display=''; document.getElementById('disc-amt').textContent = '-Rs. '+disc; }
+  else dr.style.display = 'none';
+}
+
+window.changeQty = function(id, d) {
+  const cart = TP.getCart();
+  const item = cart.find(c=>c.id===id);
+  if (item) TP.updateCartQty(id, item.qty + d);
+  renderCartUI();
+};
+window.removeItem = function(id) { TP.removeFromCart(id); renderCartUI(); };
+
+// PROMO
+window.applyPromo = async function() {
+  const code = document.getElementById('promo-inp').value.trim().toUpperCase();
+  const result = await TP.validatePromoCode(code);
+  if (!result) { TP.showToast('Invalid promo code','error'); return; }
+  if (result.expired) { TP.showToast(result.msg || 'Promo code expired','error'); return; }
+  discountRate = result.discount || 0;
+  TP.showToast('Discount applied: ' + (result.label||'') + ' 🎉');
+  renderCartUI();
+};
+
+// LOCATION
+window.getLocation = function() {
+  const s = document.getElementById('loc-status');
+  s.textContent = 'Getting location...';
   navigator.geolocation.getCurrentPosition(
-    p=>{ userGPS={lat:p.coords.latitude,lng:p.coords.longitude}; s.textContent=`📍 Location captured`; s.style.color='var(--yellow)'; },
-    ()=>{ s.textContent='Location denied. Enter address manually.'; }
+    pos => { userLocation={lat:pos.coords.latitude,lng:pos.coords.longitude}; s.textContent=`📍 Location captured!`; s.style.color='var(--yellow)'; },
+    () => { s.textContent='Location denied. Enter address manually.'; }
   );
 };
 
-// ── PROMO ─────────────────────────────────────────────────────
-window.applyPromo=async function(){
-  const code=document.getElementById('promo-inp').value.trim();
-  if(!code){ Toast.show('Enter a promo code'); return; }
-  const res=await PromoEngine.validate(code);
-  if(res.valid){ discount=res.discount; Toast.show(res.msg+' 🎉'); renderTotals(); }
-  else Toast.show(res.msg);
-};
-
-// ── PLACE ORDER ───────────────────────────────────────────────
-window.placeOrder=async function(){
-  const items=Cart.get();
-  if(!items.length){ Toast.show('Your cart is empty!'); return; }
-  const name=document.getElementById('inp-name').value.trim();
-  const phone=document.getElementById('inp-phone').value.trim();
-  if(!name||!phone){ Toast.show('Please enter your name and phone'); return; }
-  if(delType==='delivery'&&!document.getElementById('inp-addr').value.trim()){ Toast.show('Please enter delivery address'); return; }
-
-  const sub=items.reduce((s,c)=>s+c.price*c.qty,0);
-  const disc=Math.round(sub*discount);
-  const fee=delType==='delivery'?deliveryFee:0;
-  const order={
-    id:Date.now().toString(36).toUpperCase(),
-    customer:{name,phone,uid:currentUser?.uid||null,email:currentUser?.email||null},
-    address:delType==='delivery'?document.getElementById('inp-addr').value:'PICKUP',
-    gps:userGPS,
-    items:items.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),
-    notes:document.getElementById('inp-notes').value,
-    subtotal:sub,discount:disc,deliveryFee:fee,total:sub-disc+fee,
-    deliveryType:delType,status:'pending',timestamp:Date.now()
-  };
-  try{
-    const db=getDB();
-    if(db) await db.ref('orders/'+order.id).set(order);
-    Cart.clear();
-    location.href='tracking.html?order='+order.id;
-  } catch(e){
-    Toast.show('Order saved! Redirecting...');
-    Cart.clear();
-    setTimeout(()=>location.href='tracking.html?order='+order.id,1200);
-  }
-};
-
-// ── WHATSAPP ──────────────────────────────────────────────────
-window.orderWA=function(){
-  const items=Cart.get();
-  if(!items.length){ Toast.show('Cart is empty!'); return; }
+// WHATSAPP ORDER
+window.orderWhatsApp = function() {
+  const cart = TP.getCart();
+  if (!cart.length) { TP.showToast('Your cart is empty!','error'); return; }
   const name=document.getElementById('inp-name').value||'Customer';
   const phone=document.getElementById('inp-phone').value;
   const addr=document.getElementById('inp-addr').value;
-  const sub=items.reduce((s,c)=>s+c.price*c.qty,0);
-  const fee=delType==='delivery'?deliveryFee:0;
-  const disc=Math.round(sub*discount);
-  let msg=`🥔 *TEMPURA POTATO ORDER*\n\n👤 *Name:* ${name}\n📞 *Phone:* ${phone}\n🚚 *Type:* ${delType==='delivery'?'Delivery':'Pickup'}\n`;
-  if(delType==='delivery') msg+=`📍 *Address:* ${addr}\n`;
-  if(userGPS) msg+=`🗺️ *Location:* https://maps.google.com/?q=${userGPS.lat},${userGPS.lng}\n`;
-  msg+=`\n🛒 *Items:*\n`;
-  items.forEach(i=>msg+=`  • ${i.name} ×${i.qty} — Rs. ${i.price*i.qty}\n`);
-  if(disc) msg+=`\n💸 *Discount:* −Rs. ${disc}`;
-  msg+=`\n💰 *Total: Rs. ${sub-disc+fee}*`;
   const notes=document.getElementById('inp-notes').value;
+  const sub=cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const fee=deliveryType==='delivery'?DEL_FEE:0;
+  const disc=Math.round(sub*discountRate);
+  const total=sub-disc+fee;
+  let msg=`🥔 *TEMPURA POTATO ORDER*\n\n👤 *Name:* ${name}\n📞 *Phone:* ${phone}\n🚚 *Type:* ${deliveryType==='delivery'?'Delivery':'Pickup'}\n`;
+  if(deliveryType==='delivery') msg+=`📍 *Address:* ${addr}\n`;
+  if(userLocation) msg+=`🗺️ *Location:* https://maps.google.com/?q=${userLocation.lat},${userLocation.lng}\n`;
+  msg+=`\n🛒 *Order:*\n`;
+  cart.forEach(i=>{msg+=`  • ${i.name} x${i.qty} — Rs. ${i.price*i.qty}\n`;});
+  if(disc) msg+=`\n💸 *Discount:* -Rs. ${disc}`;
+  msg+=`\n💰 *Total: Rs. ${total}*`;
   if(notes) msg+=`\n📝 *Notes:* ${notes}`;
-  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+  window.open(`https://wa.me/${WA_NUM}?text=${encodeURIComponent(msg)}`,'_blank');
 };
 
-// ── BOOT ─────────────────────────────────────────────────────
-renderCart();
-renderAuth();
+// PLACE ORDER
+window.placeOrder = async function() {
+  const cart = TP.getCart();
+  if (!cart.length) { TP.showToast('Your cart is empty!','error'); return; }
+  const name=document.getElementById('inp-name').value;
+  const phone=document.getElementById('inp-phone').value;
+  if(!name||!phone) { TP.showToast('Please enter your name and phone','error'); return; }
+  if(deliveryType==='delivery'&&!document.getElementById('inp-addr').value) { TP.showToast('Please enter delivery address','error'); return; }
+  const sub=cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const fee=deliveryType==='delivery'?DEL_FEE:0;
+  const disc=Math.round(sub*discountRate);
+  const order={
+    id:Date.now().toString(),
+    customer:{name,phone,uid:currentUser?.uid||null,email:currentUser?.email||null},
+    address:deliveryType==='delivery'?document.getElementById('inp-addr').value:'PICKUP',
+    location:userLocation||null,
+    items:cart,
+    notes:document.getElementById('inp-notes').value,
+    subtotal:sub,discountAmount:disc,fee,total:sub-disc+fee,
+    deliveryType,status:'pending',timestamp:Date.now()
+  };
+  try {
+    if(db) await db.ref('orders/'+order.id).set(order);
+    TP.clearCart();
+    window.location.href='tracking.html?order='+order.id;
+  } catch(e) {
+    TP.showToast('Connecting to server...','error');
+    setTimeout(()=>{ TP.clearCart(); window.location.href='tracking.html?order=demo'; },1800);
+  }
+};
+
+// Initial render
+renderCartUI();
 </script>
 </body>
 </html>
